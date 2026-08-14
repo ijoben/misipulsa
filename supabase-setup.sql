@@ -28,6 +28,18 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
+-- 1b. TABEL KONFIGURASI BONUS PENDAFTARAN (1 baris, diatur admin di tab Setting)
+CREATE TABLE IF NOT EXISTS public.signup_bonus_config (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    amount INTEGER NOT NULL DEFAULT 100,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+INSERT INTO public.signup_bonus_config (id, amount, is_active)
+VALUES (1, 100, TRUE)
+ON CONFLICT (id) DO NOTHING;
+
 -- 2. TABEL MISSIONS (Daftar Misi)
 CREATE TABLE IF NOT EXISTS public.missions (
     id BIGSERIAL PRIMARY KEY,
@@ -61,7 +73,8 @@ CREATE TABLE IF NOT EXISTS public.user_missions (
 CREATE INDEX IF NOT EXISTS idx_user_missions_user_claimed
     ON public.user_missions (user_id, claimed_at);
 
--- 5. TRIGGER OTOMATIS SAAT USER REGISTRASI BARU (AUTO PROFILE + 100 POIN)
+-- 5. TRIGGER OTOMATIS SAAT USER REGISTRASI BARU (AUTO PROFILE + BONUS PENDAFTARAN)
+--    Bonus diambil dari tabel signup_bonus_config (diatur admin, sekali klaim).
 --    Kode referral dibuat anti-collision (loop retry saat UNIQUE bentrok)
 --    dan jika pendaftar membawa kode referral, perekrut mendapat +50 poin.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -74,21 +87,33 @@ DECLARE
     v_ref_code TEXT;
     v_referrer_id UUID;
     v_referrer_code TEXT := NULLIF(UPPER(NEW.raw_user_meta_data->>'referral_code'), '');
+    v_bonus INT := 0;
+    v_claimed BOOLEAN := FALSE;
+    v_cfg public.signup_bonus_config%ROWTYPE;
 BEGIN
-    v_ref_code := UPPER('MISI' || SUBSTRING(REPLACE(NEW.id::text, '-', ''), 1, 6));
+    -- Bonus pendaftaran diambil dari konfigurasi admin (tab Setting)
+    SELECT * INTO v_cfg FROM public.signup_bonus_config WHERE id = 1;
+    IF FOUND AND v_cfg.is_active THEN
+        v_bonus := COALESCE(v_cfg.amount, 0);
+        v_claimed := TRUE;
+    END IF;
+
+    v_ref_code := (100000 + FLOOR(RANDOM() * 900000))::TEXT; -- 6 angka acak
     LOOP
         BEGIN
-            INSERT INTO public.profiles (id, phone, full_name, points, referral_code)
+            INSERT INTO public.profiles (id, phone, full_name, points, referral_code, bonus_claimed, bonus_claimed_at)
             VALUES (
                 NEW.id,
                 COALESCE(NEW.raw_user_meta_data->>'phone', NEW.phone, '08123456789'),
                 COALESCE(NEW.raw_user_meta_data->>'full_name', 'Member Baru'),
-                100, -- Bonus 100 Poin Otomatis Pendaftaran
-                v_ref_code
+                v_bonus,
+                v_ref_code,
+                v_claimed,
+                CASE WHEN v_claimed THEN NOW() ELSE NULL END
             );
             EXIT;
         EXCEPTION WHEN unique_violation THEN
-            v_ref_code := UPPER('MISI' || SUBSTRING(MD5(random()::text || NEW.id::text) FROM 1 FOR 6));
+            v_ref_code := (100000 + FLOOR(RANDOM() * 900000))::TEXT;
         END;
     END LOOP;
 
@@ -437,8 +462,15 @@ BEGIN
         RAISE EXCEPTION 'Auth User ID wajib diisi (UUID user di Supabase Auth).';
     END IF;
 
-    v_code := COALESCE(NULLIF(UPPER(TRIM(p_referral_code)), ''),
-                       UPPER('MISI' || SUBSTRING(REPLACE(p_auth_id::text, '-', ''), 1, 6)));
+    -- Kode referral: jika tidak diisi, buat 6 angka acak yang unik (loop retry)
+    IF p_referral_code IS NULL OR TRIM(p_referral_code) = '' THEN
+        LOOP
+            v_code := (100000 + FLOOR(RANDOM() * 900000))::TEXT;
+            EXIT WHEN NOT EXISTS (SELECT 1 FROM public.profiles WHERE referral_code = v_code);
+        END LOOP;
+    ELSE
+        v_code := UPPER(TRIM(p_referral_code));
+    END IF;
 
     INSERT INTO public.profiles (id, full_name, phone, points, level, is_admin, referral_code)
     VALUES (
@@ -514,3 +546,111 @@ $$;
 
 REVOKE EXECUTE ON FUNCTION public.admin_credit_points(UUID, INT) FROM anon, public;
 GRANT EXECUTE ON FUNCTION public.admin_credit_points(UUID, INT) TO authenticated;
+
+-- ==========================================================================
+-- 13. BONUS PENDAFTARAN (sekali klaim per user, diatur admin di tab Setting)
+--     - profiles.bonus_claimed / bonus_claimed_at : penanda klaim per user
+--     - Bonus diberikan otomatis oleh trigger handle_new_user saat daftar;
+--       RPC claim_signup_bonus melayani user lama yang belum pernah klaim
+--       (mis. daftar saat bonus nonaktif). Semua jalur dijaga server agar
+--       bonus hanya bisa diterima SATU kali seumur hidup.
+-- ==========================================================================
+ALTER TABLE public.profiles
+    ADD COLUMN IF NOT EXISTS bonus_claimed BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE public.profiles
+    ADD COLUMN IF NOT EXISTS bonus_claimed_at TIMESTAMP WITH TIME ZONE;
+
+ALTER TABLE public.signup_bonus_config ENABLE ROW LEVEL SECURITY;
+
+-- Konfigurasi boleh dibaca siapa saja (halaman daftar menampilkan nominal),
+-- hanya admin yang boleh mengubah.
+DROP POLICY IF EXISTS "Signup bonus config is viewable by everyone." ON public.signup_bonus_config;
+CREATE POLICY "Signup bonus config is viewable by everyone." ON public.signup_bonus_config
+    FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Admins can manage signup bonus config" ON public.signup_bonus_config;
+CREATE POLICY "Admins can manage signup bonus config" ON public.signup_bonus_config
+    FOR ALL USING (public.is_admin_user()) WITH CHECK (public.is_admin_user());
+
+-- Klaim bonus pendaftaran: sekali seumur hidup per user (dipaksa di server).
+CREATE OR REPLACE FUNCTION public.claim_signup_bonus()
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_cfg public.signup_bonus_config%ROWTYPE;
+    v_uid UUID := auth.uid();
+BEGIN
+    IF v_uid IS NULL THEN
+        RETURN jsonb_build_object('ok', false, 'reason', 'unauth');
+    END IF;
+
+    SELECT * INTO v_cfg FROM public.signup_bonus_config WHERE id = 1;
+    IF NOT FOUND OR NOT v_cfg.is_active THEN
+        RETURN jsonb_build_object('ok', false, 'reason', 'inactive');
+    END IF;
+
+    IF EXISTS (SELECT 1 FROM public.profiles WHERE id = v_uid AND bonus_claimed) THEN
+        RETURN jsonb_build_object('ok', false, 'reason', 'already');
+    END IF;
+
+    UPDATE public.profiles
+       SET points = COALESCE(points, 0) + COALESCE(v_cfg.amount, 0),
+           bonus_claimed = TRUE,
+           bonus_claimed_at = NOW()
+     WHERE id = v_uid;
+
+    RETURN jsonb_build_object('ok', true, 'amount', COALESCE(v_cfg.amount, 0));
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.claim_signup_bonus() FROM anon, public;
+GRANT EXECUTE ON FUNCTION public.claim_signup_bonus() TO authenticated;
+
+-- Admin: ubah nominal & status aktif bonus (tab Setting).
+CREATE OR REPLACE FUNCTION public.admin_update_signup_bonus(p_amount INT, p_active BOOLEAN)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF NOT public.is_admin_user() THEN
+        RAISE EXCEPTION 'Hanya admin yang bisa mengubah pengaturan bonus.';
+    END IF;
+    IF p_amount IS NULL OR p_amount < 0 THEN
+        RAISE EXCEPTION 'Nominal bonus tidak valid.';
+    END IF;
+    INSERT INTO public.signup_bonus_config (id, amount, is_active, updated_at)
+    VALUES (1, p_amount, COALESCE(p_active, TRUE), NOW())
+    ON CONFLICT (id) DO UPDATE
+        SET amount = EXCLUDED.amount,
+            is_active = EXCLUDED.is_active,
+            updated_at = NOW();
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.admin_update_signup_bonus(INT, BOOLEAN) FROM anon, public;
+GRANT EXECUTE ON FUNCTION public.admin_update_signup_bonus(INT, BOOLEAN) TO authenticated;
+
+-- Admin: reset klaim bonus user (user dapat klaim sekali lagi).
+CREATE OR REPLACE FUNCTION public.admin_reset_signup_bonus(p_user_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF NOT public.is_admin_user() THEN
+        RAISE EXCEPTION 'Hanya admin yang bisa mereset klaim bonus.';
+    END IF;
+    UPDATE public.profiles
+       SET bonus_claimed = FALSE, bonus_claimed_at = NULL
+     WHERE id = p_user_id;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.admin_reset_signup_bonus(UUID) FROM anon, public;
+GRANT EXECUTE ON FUNCTION public.admin_reset_signup_bonus(UUID) TO authenticated;

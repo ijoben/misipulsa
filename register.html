@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Daftar Akun Baru - MisiPulsa (Supabase Auth)</title>
+    <title>Daftar Akun Baru - MisiPulsa</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -22,8 +22,8 @@
         <div class="auth-box">
             <div class="auth-header">
                 <a href="index.html" style="text-decoration:none;"><span class="icon"><i class="fas fa-gift"></i></span></a>
-                <h2>Daftar Akun Supabase</h2>
-                <p>Dapatkan <strong>Bonus 100 Poin Gratis</strong> otomatis saat pendaftaran!</p>
+                <h2>Daftar Akun Baru</h2>
+                <p>Dapatkan <strong id="bonusAmountText">Bonus Poin Gratis</strong> otomatis saat pendaftaran!</p>
             </div>
             
             <div class="auth-body">
@@ -46,14 +46,11 @@
                     </div>
                     <div class="input-group">
                         <span class="icon-left"><i class="fas fa-gift"></i></span>
-                        <input type="text" id="regReferral" placeholder="Kode Referral (opsional)" style="text-transform:uppercase;">
+                        <input type="text" id="regReferral" placeholder="Kode Referral 6 Angka (opsional)" style="text-transform:uppercase;">
                     </div>
 
                     <button type="submit" class="btn-auth" id="regSubmitBtn">
-                        <i class="fas fa-user-plus"></i> Daftar Akun & Klaim 100 Poin
-                    </button>
-                    <button type="button" class="btn-demo" onclick="quickLoginModal()">
-                        <i class="fas fa-bolt"></i> Daftar Cepat (Mode Demo)
+                        <i class="fas fa-user-plus"></i> Daftar Akun & Klaim Bonus Poin
                     </button>
                 </form>
 
@@ -89,13 +86,34 @@
             });
             
             if (result.success) {
-                showToast('🎉 Akun Supabase berhasil dibuat (+100 Poin)!', 'success');
+                showToast('🎉 Akun berhasil dibuat! Bonus pendaftaran telah masuk.', 'success');
                 setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
             } else {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-user-plus"></i> Daftar Akun & Klaim 100 Poin';
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> Daftar Akun & Klaim Bonus Poin';
             }
         }
+
+        // Isi otomatis kode referral dari link (mis. /register?ref=MISIXXXX)
+        try {
+            const refParam = new URLSearchParams(window.location.search).get('ref');
+            if (refParam) {
+                const refInput = document.getElementById('regReferral');
+                if (refInput) refInput.value = String(refParam).trim().toUpperCase();
+            }
+        } catch (e) { /* abaikan */ }
+
+        // Tampilkan nominal bonus pendaftaran dari pengaturan (config server/demo)
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadSignupBonusConfig();
+            const el = document.getElementById('bonusAmountText');
+            if (el) {
+                const n = Number(signupBonusConfig.amount) || 0;
+                el.textContent = (signupBonusConfig.is_active && n > 0)
+                    ? `Bonus ${n.toLocaleString('id-ID')} Poin`
+                    : 'Bonus Poin Gratis';
+            }
+        });
     </script>
 </body>
 </html>

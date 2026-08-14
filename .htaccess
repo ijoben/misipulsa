@@ -1,0 +1,18 @@
+# ==========================================================================
+# MISIPULSA — Bersihkan URL (tanpa .html)
+# Untuk hosting Apache/cPanel. Membuat /register, /login, /dashboard,
+# /admin, /reset-password otomatis memuat file .html masing-masing.
+# Contoh: https://domain.com/register?ref=MISIXXXX
+# ==========================================================================
+RewriteEngine On
+
+# Jangan rewrite file/folder yang benar-benar ada
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Map halaman bersih ke file .html
+RewriteRule ^register$ register.html [L,QSA]
+RewriteRule ^login$ login.html [L,QSA]
+RewriteRule ^dashboard$ dashboard.html [L,QSA]
+RewriteRule ^admin$ admin.html [L,QSA]
+RewriteRule ^reset-password$ reset-password.html [L,QSA]

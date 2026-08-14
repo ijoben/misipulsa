@@ -59,7 +59,7 @@ function initSupabase() {
 // (TIDAK ada fallback login simulasi yang diam-diam).
 function requireSupabase() {
     if (!initSupabase()) {
-        showToast('⚠️ Supabase belum dikonfigurasi. Isi SUPABASE_URL & SUPABASE_ANON_KEY di sistem.js terlebih dahulu.', 'error');
+        showToast('⚠️ Layanan belum dikonfigurasi. Silakan hubungi admin.', 'error');
         return false;
     }
     return true;
@@ -74,6 +74,12 @@ function esc(value) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+}
+
+// Kode referral: 6 angka acak (tanpa awalan). Di server (Supabase), unik
+// dijamin oleh kolom UNIQUE + loop retry di trigger handle_new_user.
+function generateReferralCode() {
+    return String(100000 + Math.floor(Math.random() * 900000)); // 100000–999999
 }
 
 // Hanya izinkan link absolut http/https (cegah javascript: URL, skema lain,
@@ -91,7 +97,7 @@ function safeExternalLink(url) {
 // ==================== SUPABASE AUTH FUNCTIONS ====================
 async function signUpSupabase(email, password, userMetadata = {}) {
     if (!requireSupabase()) {
-        return { success: false, error: 'Supabase belum dikonfigurasi' };
+        return { success: false, error: 'Layanan belum dikonfigurasi' };
     }
 
     try {
@@ -113,17 +119,23 @@ async function signUpSupabase(email, password, userMetadata = {}) {
         }
 
         if (data.user && data.session) {
-            currentUser = {
-                id: data.user.id,
-                name: userMetadata.full_name || 'Member Baru',
-                email: email,
-                phone: userMetadata.phone || '',
-                totalEarned: 100,
-                streak: 1,
-                referralCode: 'MISI' + Math.floor(1000 + Math.random() * 9000),
-                isAdmin: false
-            };
-            userPoints = 100;
+            // Ambil profil asli dari server (poin sudah termasuk bonus pendaftaran
+            // yang diberikan trigger handle_new_user).
+            await fetchUserProfileSupabase(data.user.id, email);
+            if (!currentUser) {
+                currentUser = {
+                    id: data.user.id,
+                    name: userMetadata.full_name || 'Member Baru',
+                    email: email,
+                    phone: userMetadata.phone || '',
+                    totalEarned: 0,
+                    streak: 1,
+                    referralCode: generateReferralCode(),
+                    isAdmin: false
+                };
+            }
+            userPoints = currentUser.totalEarned || 0;
+            isLoggedIn = true;
             saveData();
             return { success: true, user: data.user };
         }
@@ -144,7 +156,7 @@ async function signUpSupabase(email, password, userMetadata = {}) {
 
 async function signInSupabase(email, password) {
     if (!requireSupabase()) {
-        return { success: false, error: 'Supabase belum dikonfigurasi' };
+        return { success: false, error: 'Layanan belum dikonfigurasi' };
     }
 
     try {
@@ -191,8 +203,9 @@ async function fetchUserProfileSupabase(userId, email) {
                 phone: data.phone || '',
                 totalEarned: data.points || 100,
                 streak: data.streak || 1,
-                referralCode: data.referral_code || 'MISI' + Math.floor(1000 + Math.random() * 9000),
-                isAdmin: data.is_admin === true  // HANYA dari database, tidak pernah dari localStorage
+                referralCode: data.referral_code || generateReferralCode(),
+                isAdmin: data.is_admin === true,  // HANYA dari database, tidak pernah dari localStorage
+                bonusClaimed: data.bonus_claimed === true
             };
             userPoints = data.points || 100;
             saveData();
@@ -202,7 +215,70 @@ async function fetchUserProfileSupabase(userId, email) {
     }
 }
 
+// ==================== BONUS PENDAFTARAN (SEKALI KLAIM) ====================
+async function loadSignupBonusConfig() {
+    if (supabaseClient) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('signup_bonus_config')
+                .select('*')
+                .eq('id', 1)
+                .single();
+            if (!error && data) {
+                signupBonusConfig = {
+                    amount: Number(data.amount) || 0,
+                    is_active: data.is_active !== false
+                };
+            }
+        } catch (e) {
+            console.warn('Load bonus config failed:', e);
+        }
+    } else {
+        try {
+            const raw = localStorage.getItem('mp_signupBonusConfig');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && typeof parsed === 'object') {
+                    signupBonusConfig = {
+                        amount: Number(parsed.amount) || 0,
+                        is_active: parsed.is_active !== false
+                    };
+                }
+            }
+        } catch (e) { /* abaikan */ }
+    }
+}
+
+// Klaim bonus pendaftaran. Keamanan ada di server (RPC claim_signup_bonus):
+// hanya berhasil SEKALI seumur hidup; dipanggil berulang aman.
+async function claimSignupBonus() {
+    if (!supabaseClient || !currentUser) return { ok: false, reason: 'noconfig' };
+    try {
+        const { data, error } = await supabaseClient.rpc('claim_signup_bonus');
+        if (error) {
+            console.warn('Claim bonus error:', error.message);
+            return { ok: false, reason: 'error' };
+        }
+        if (data && data.ok) {
+            userPoints = (userPoints || 0) + Number(data.amount || 0);
+            currentUser.totalEarned = userPoints;
+            currentUser.bonusClaimed = true;
+            saveData();
+            return { ok: true, amount: Number(data.amount || 0) };
+        }
+        return { ok: false, reason: (data && data.reason) || 'unknown' };
+    } catch (e) {
+        console.warn('Claim bonus failed:', e);
+        return { ok: false, reason: 'error' };
+    }
+}
+
 async function signOutSupabase() {
+    if (isImpersonating()) {
+        // Mode lihat: cukup kembali ke panel admin, jangan logout admin.
+        exitImpersonation();
+        return;
+    }
     if (supabaseClient) {
         try { await supabaseClient.auth.signOut(); } catch (e) { console.warn('Sign out error:', e); }
     }
@@ -211,7 +287,7 @@ async function signOutSupabase() {
 
 async function resetPasswordSupabase(email) {
     if (!requireSupabase()) {
-        return { success: false, error: 'Supabase belum dikonfigurasi' };
+        return { success: false, error: 'Layanan belum dikonfigurasi' };
     }
 
     try {
@@ -328,6 +404,7 @@ async function fetchMyWithdrawals() {
         const { data, error } = await supabaseClient
             .from('withdrawals')
             .select('*')
+            .eq('user_id', currentUser.id)
             .order('created_at', { ascending: false });
         if (error) {
             console.warn('Load withdrawals error:', error.message);
@@ -401,6 +478,7 @@ async function fetchMyDeposits() {
         const { data, error } = await supabaseClient
             .from('deposits')
             .select('*')
+            .eq('user_id', currentUser.id)
             .order('created_at', { ascending: false });
         if (error) {
             console.warn('Load deposits error:', error.message);
@@ -409,6 +487,8 @@ async function fetchMyDeposits() {
         if (Array.isArray(data)) {
             myDeposits = data;
             myDeposits.forEach(d => {
+                // Mode lihat (admin): jangan ubah status upgrade lokal admin
+                if (isImpersonating()) return;
                 if (d.status === 'approved' && d.note) {
                     if (d.note.includes('Premium')) { isPremium = true; youtubeUpgraded = true; adUpgraded = true; }
                     else if (d.note.includes('YouTube')) youtubeUpgraded = true;
@@ -422,10 +502,103 @@ async function fetchMyDeposits() {
     }
 }
 
+// ==================== LOGIN SEBAGAI USER (ADMIN, BACA-SAJA) ====================
+// Admin bisa membuka dashboard member untuk diperiksa. Semua aksi tulis
+// (klaim misi, tarik, deposit) diblokir; admin tetap login dengan sesinya
+// sendiri sehingga RLS server memperlakukan request sebagai admin.
+function getImpersonation() {
+    try {
+        const raw = sessionStorage.getItem('mp_impersonate');
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+}
+
+function clearImpersonation() {
+    sessionStorage.removeItem('mp_impersonate');
+}
+
+function isImpersonating() {
+    return !!(currentUser && currentUser.isImpersonating);
+}
+
+// Tombol "Lihat" di tab User admin → buka dashboard user tersebut.
+function loginAsUser(userId) {
+    if (!supabaseClient || !userId) return;
+    const u = adminUsers.find(x => String(x.id) === String(userId));
+    sessionStorage.setItem('mp_impersonate', JSON.stringify({
+        userId,
+        name: (u && (u.full_name || u.name)) || 'User'
+    }));
+    window.location.href = 'dashboard.html';
+}
+
+// Keluar dari mode lihat → kembali ke panel admin.
+function exitImpersonation() {
+    clearImpersonation();
+    window.location.href = 'admin.html';
+}
+
+// Guard: blokir semua aksi tulis saat mode lihat (baca-saja).
+function impersonationBlocked() {
+    if (isImpersonating()) {
+        showToast('Mode lihat (baca-saja). Kembali ke panel admin untuk bertindak.', 'info');
+        return true;
+    }
+    return false;
+}
+
+// Muat profil user target untuk mode lihat (admin bisa membaca semua profil).
+async function loadImpersonatedProfile(userId) {
+    if (!supabaseClient || !userId) return false;
+    try {
+        const { data, error } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+        if (error || !data) {
+            console.warn('Impersonation profile error:', error && error.message);
+            return false;
+        }
+        currentUser = {
+            id: data.id,
+            name: data.full_name || 'Member MisiPulsa',
+            email: data.phone || '',
+            phone: data.phone || '',
+            totalEarned: data.points || 0,
+            streak: data.streak || 1,
+            referralCode: data.referral_code || '',
+            isAdmin: false,
+            bonusClaimed: data.bonus_claimed === true,
+            isImpersonating: true
+        };
+        userPoints = data.points || 0;
+        isLoggedIn = true;
+        return true;
+    } catch (e) {
+        console.warn('Impersonation load failed:', e);
+        return false;
+    }
+}
+
 // Dipanggil dashboard.html setelah sesi dipastikan ada.
 async function bootDashboard() {
+    const imp = getImpersonation();
+    if (supabaseClient && imp && imp.userId) {
+        const ok = await loadImpersonatedProfile(imp.userId);
+        if (!ok) clearImpersonation();
+    }
+
     if (supabaseClient && currentUser && currentUser.id) {
         await Promise.all([loadMissionsFromServer(), fetchMyWithdrawals(), fetchMyDeposits(), loadBanksFromServer()]);
+        // Bonus pendaftaran sekali-klaim (dijamin server; hanya berhasil sekali)
+        if (currentUser.bonusClaimed !== true && !isImpersonating()) {
+            const claim = await claimSignupBonus();
+            if (claim.ok) {
+                showToast(`🎉 Bonus pendaftaran +${claim.amount} poin berhasil diklaim!`, 'success');
+                updateUI();
+            }
+        }
     }
     renderApp();
 }
@@ -467,7 +640,7 @@ async function loadAdminUsersFromServer() {
     try {
         const { data, error } = await supabaseClient
             .from('profiles')
-            .select('id, full_name, phone, points, level, is_admin, created_at')
+            .select('id, full_name, phone, points, level, is_admin, created_at, bonus_claimed, bonus_claimed_at')
             .order('created_at', { ascending: false });
         if (error) {
             console.warn('Load users error:', error.message);
@@ -479,10 +652,58 @@ async function loadAdminUsersFromServer() {
     }
 }
 
+// ==================== BONUS PENDAFTARAN: KELOLA ADMIN ====================
+async function saveSignupBonusConfig() {
+    const amountEl = document.getElementById('adminBonusAmount');
+    const activeEl = document.getElementById('adminBonusActive');
+    if (!amountEl) return;
+    const amount = parseInt(amountEl.value, 10);
+    if (!Number.isFinite(amount) || amount < 0) {
+        showToast('Nominal bonus tidak valid.', 'error');
+        return;
+    }
+    const isActive = !!(activeEl && activeEl.checked);
+
+    if (supabaseClient) {
+        const { error } = await supabaseClient.rpc('admin_update_signup_bonus', {
+            p_amount: amount,
+            p_active: isActive
+        });
+        if (error) {
+            showToast(`⚠️ Gagal menyimpan: ${error.message}`, 'error');
+            return;
+        }
+    } else {
+        signupBonusConfig = { amount, is_active: isActive };
+        saveData();
+    }
+
+    showToast('✅ Pengaturan bonus pendaftaran disimpan.', 'success');
+    renderAdminPanel();
+}
+
+async function resetSignupBonusClaim(userId) {
+    if (!userId) return;
+    if (!confirm('Reset klaim bonus user ini? User akan bisa menerima bonus sekali lagi.')) return;
+
+    if (supabaseClient) {
+        const { error } = await supabaseClient.rpc('admin_reset_signup_bonus', { p_user_id: userId });
+        if (error) {
+            showToast(`⚠️ Gagal reset: ${error.message}`, 'error');
+            return;
+        }
+        await loadAdminUsersFromServer();
+    }
+
+    showToast('✅ Klaim bonus user direset.', 'success');
+    renderAdminPanel();
+}
+
 // Dipanggil admin.html setelah guard admin lolos.
 async function openAdminPanel() {
     // Reset statistik & tab tiap kali panel dibuka
     adminStats = { totalUsers: null, approvedPoints: 0, pendingWithdraw: 0 };
+    await loadSignupBonusConfig();
     adminActiveTab = 'stats';
     adminActiveTxTab = 'wd';
 
@@ -500,9 +721,9 @@ async function openAdminPanel() {
         // Data user contoh untuk mode demo (hanya seed bila belum ada di localStorage)
         if (adminUsers.length === 0) {
             adminUsers = [
-                { id: 'USR-1', full_name: 'Budi Santoso', phone: '0812xxxx1122', points: 15250, level: 'Free', is_admin: false, referral_code: 'MISI1111', created_at: '10-08-2026' },
-                { id: 'USR-2', full_name: 'Siti Rahma', phone: '0857xxxx3344', points: 8450, level: 'Free', is_admin: false, referral_code: 'MISI2222', created_at: '11-08-2026' },
-                { id: 'USR-3', full_name: 'Andi Wijaya', phone: '0896xxxx5566', points: 3200, level: 'Free', is_admin: false, referral_code: 'MISI3333', created_at: '12-08-2026' }
+                { id: 'USR-1', full_name: 'Budi Santoso', phone: '0812xxxx1122', points: 15250, level: 'Free', is_admin: false, referral_code: '482913', created_at: '10-08-2026' },
+                { id: 'USR-2', full_name: 'Siti Rahma', phone: '0857xxxx3344', points: 8450, level: 'Free', is_admin: false, referral_code: '920175', created_at: '11-08-2026' },
+                { id: 'USR-3', full_name: 'Andi Wijaya', phone: '0896xxxx5566', points: 3200, level: 'Free', is_admin: false, referral_code: '638402', created_at: '12-08-2026' }
             ];
         }
         if (currentUser) {
@@ -654,6 +875,11 @@ function verifyOTPModal() {
 }
 
 function quickLoginModal() {
+    if (isSupabaseConfigured()) {
+        // Produksi: login demo nonaktif — semua akses lewat akun asli.
+        showToast('⚠️ Login demo dinonaktifkan. Silakan daftar akun untuk masuk.', 'error');
+        return;
+    }
     showToast('🚀 Login cepat (Demo)...', 'info');
     setTimeout(() => {
         performLogin();
@@ -716,6 +942,9 @@ let banks = [];
 let deposits = [];
 let myDeposits = []; // Deposit milik member (untuk riwayat transfer manual)
 
+// Bonus pendaftaran: konfigurasi (diatur admin di tab Setting) & penanda klaim.
+let signupBonusConfig = { amount: 100, is_active: true };
+
 // Paket upgrade yang bisa dibeli lewat transfer manual
 const MANUAL_PACKAGES = {
     'YouTube VIP': { price: 'Rp 10.000', points: 0 },
@@ -737,10 +966,15 @@ function performLogin() {
 // Demo login: status admin SELALU false. Admin hanya dari DB Supabase.
 function performLoginDemo(name, phone) {
     const demoMode = !isSupabaseConfigured();
+    if (!demoMode) {
+        // Produksi (Supabase terkonfigurasi): login demo nonaktif.
+        showToast('⚠️ Login demo dinonaktifkan. Silakan daftar akun untuk masuk.', 'error');
+        return;
+    }
     currentUser = {
         name: name,
         phone: phone,
-        referralCode: 'MISI' + Math.floor(1000 + Math.random() * 9000),
+        referralCode: generateReferralCode(),
         totalEarned: 150,
         streak: 1,
         joinDate: '12-08-2026',
@@ -752,7 +986,7 @@ function performLoginDemo(name, phone) {
 
     saveData();
     if (demoMode) {
-        showToast(`🎉 Selamat Datang (Mode Demo), ${name}! Supabase belum dikonfigurasi.`, 'info');
+        showToast(`🎉 Selamat Datang, ${name}! (Mode Demo)`, 'info');
     } else {
         showToast(`🎉 Selamat Datang, ${name}!`, 'success');
     }
@@ -766,6 +1000,7 @@ function performLoginDemo(name, phone) {
 }
 
 function logout() {
+    clearImpersonation();
     currentUser = null;
     isLoggedIn = false;
     userPoints = 0;
@@ -810,6 +1045,7 @@ function saveData() {
         localStorage.setItem('mp_downlineList', JSON.stringify(downlineList));
         localStorage.setItem('mp_banks', JSON.stringify(banks));
         localStorage.setItem('mp_adminUsers', JSON.stringify(adminUsers));
+        localStorage.setItem('mp_signupBonusConfig', JSON.stringify(signupBonusConfig));
     } catch (e) {
         console.warn('LocalStorage error:', e);
     }
@@ -863,6 +1099,19 @@ function loadData() {
         const savedAdminUsers = JSON.parse(localStorage.getItem('mp_adminUsers') || 'null');
         if (Array.isArray(savedAdminUsers) && savedAdminUsers.length > 0) adminUsers = savedAdminUsers;
 
+        const savedBonus = localStorage.getItem('mp_signupBonusConfig');
+        if (savedBonus) {
+            try {
+                const b = JSON.parse(savedBonus);
+                if (b && typeof b === 'object') {
+                    signupBonusConfig = {
+                        amount: Number(b.amount) || 0,
+                        is_active: b.is_active !== false
+                    };
+                }
+            } catch (e) { /* abaikan */ }
+        }
+
         const savedMissions = JSON.parse(localStorage.getItem('mp_missions') || 'null');
         if (Array.isArray(savedMissions) && savedMissions.length > 0) missions = savedMissions;
     } catch (e) {
@@ -876,28 +1125,27 @@ function renderApp() {
     if (!container) return;
 
     container.innerHTML = `
-        <!-- HEADER -->
+        ${isImpersonating() ? `
+        <div class="impersonate-banner">
+            <div style="flex:1;"><i class="fas fa-eye"></i> Mode Lihat — dashboard <strong>${esc(currentUser.name)}</strong> (baca-saja)</div>
+            <button type="button" class="btn-outline" onclick="exitImpersonation()"><i class="fas fa-arrow-left"></i> Kembali ke Admin</button>
+        </div>` : ''}
+        <!-- HEADER: logo kiri + notifikasi kanan -->
         <div class="header">
-            <div class="header-logo">
+            <div class="header-left">
                 <a href="index.html" class="logo-text" style="text-decoration:none;">
                     <span class="logo-icon"><i class="fas fa-mobile-screen-button"></i></span>
                     <span>MisiPulsa</span>
                 </a>
             </div>
-
-            <div id="pointsCardWrapper">
-                <div class="points-card">
-                    <div class="points-left">
-                        <div class="points-label"><i class="fas fa-coins"></i> Total Poin</div>
-                        <div class="points-value" id="userPoints">${(userPoints || 0).toLocaleString()}</div>
-                    </div>
-                    <div class="points-right">
-                        <div class="points-level" id="userLevel">${isPremium ? '<i class="fas fa-crown"></i> Premium' : (youtubeUpgraded || adUpgraded ? '<i class="fas fa-rocket"></i> Upgrade' : '<i class="fas fa-user"></i> Free')}</div>
-                        <div class="points-stats">
-                            <span><i class="fas fa-chart-simple"></i> <strong id="totalEarned">${currentUser ? currentUser.totalEarned : 0}</strong></span>
-                            <span><i class="fas fa-fire"></i> <strong id="streakCount">${currentUser ? currentUser.streak : 1}</strong></span>
-                        </div>
-                    </div>
+            <div class="header-right">
+                <button type="button" class="notif-btn" onclick="toggleNotifications(event)" aria-label="Notifikasi">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-dot" id="notifDot"></span>
+                </button>
+                <div class="notif-panel" id="notifPanel">
+                    <div class="notif-panel-title"><i class="fas fa-bell"></i> Notifikasi</div>
+                    <div id="notifList"></div>
                 </div>
             </div>
         </div>
@@ -906,6 +1154,26 @@ function renderApp() {
         <div class="main-content" id="mainContent">
 
             <div class="tab-content active" id="tab-missions">
+                <!-- KARTU POIN: bagian dari konten Beranda — ikut scroll, tidak lengket -->
+                <div id="pointsCardWrapper">
+                    <div class="points-card">
+                        <div class="pc-orb pc-orb-1"></div>
+                        <div class="pc-orb pc-orb-2"></div>
+                        <div class="pc-glow"></div>
+                        <div class="points-coin"><i class="fas fa-coins"></i></div>
+                        <div class="points-left">
+                            <div class="points-label">Total Poin</div>
+                            <div class="points-value" id="userPoints">${(userPoints || 0).toLocaleString()}</div>
+                        </div>
+                        <div class="points-right">
+                            <div class="points-level" id="userLevel">${isPremium ? '<i class="fas fa-crown"></i> Premium' : (youtubeUpgraded || adUpgraded ? '<i class="fas fa-rocket"></i> Upgrade' : '<i class="fas fa-user"></i> Free')}</div>
+                            <div class="points-stats">
+                                <span class="stat-earn"><i class="fas fa-chart-simple"></i> <strong id="totalEarned">${currentUser ? currentUser.totalEarned : 0}</strong></span>
+                                <span class="stat-streak"><i class="fas fa-fire"></i> <strong id="streakCount">${currentUser ? currentUser.streak : 1}</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="missionsList"></div>
             </div>
 
@@ -977,10 +1245,6 @@ function switchTab(tabName) {
         else n.classList.remove('active');
     });
 
-    // Kartu poin HANYA tampil di tab Beranda — tidak lengket di tab lain.
-    const pointsWrap = document.getElementById('pointsCardWrapper');
-    if (pointsWrap) pointsWrap.style.display = (tabName === 'missions') ? '' : 'none';
-
     updateUI();
 }
 
@@ -994,6 +1258,15 @@ function updateUI() {
     if (totalEarned && currentUser) totalEarned.textContent = currentUser.totalEarned.toLocaleString();
     if (streakCount && currentUser) streakCount.textContent = currentUser.streak;
 
+    // Titik merah di lonceng: muncul saat ada penarikan pending
+    const notifDot = document.getElementById('notifDot');
+    if (notifDot) {
+        const hasPending = (withdrawRequests || [])
+            .concat(withdrawHistory || [])
+            .some(w => (w.status || 'pending') === 'pending');
+        notifDot.classList.toggle('show', !!hasPending);
+    }
+
     let levelText = '<i class="fas fa-user"></i> Free';
     if (isPremium) levelText = '<i class="fas fa-crown" style="color:#ffc107;"></i> Premium';
     else if (youtubeUpgraded || adUpgraded) levelText = '<i class="fas fa-rocket"></i> Upgrade';
@@ -1006,6 +1279,48 @@ function updateUI() {
     renderWithdrawHistory();
     renderReferral();
     renderAccount();
+}
+
+// ==================== NOTIFIKASI (LONCENG DI HEADER) ====================
+function toggleNotifications(ev) {
+    if (ev) ev.stopPropagation();
+    const panel = document.getElementById('notifPanel');
+    const list = document.getElementById('notifList');
+    if (!panel) return;
+    const open = panel.classList.toggle('open');
+    if (!open || !list) return;
+
+    const items = [];
+    (withdrawRequests || [])
+        .concat(withdrawHistory || [])
+        .filter(w => (w.status || 'pending') === 'pending')
+        .forEach(w => items.push({ icon: 'clock', title: `Penarikan ${w.amount} sedang diproses`, date: w.date || '' }));
+    (myDeposits || [])
+        .filter(d => d.status === 'approved')
+        .slice(-3)
+        .forEach(d => items.push({ icon: 'circle-check', title: `Deposit ${d.amount} disetujui`, date: d.created_at ? new Date(d.created_at).toLocaleDateString('id-ID') : '' }));
+    (activityHistory || []).slice(0, 8).forEach(a =>
+        items.push({ icon: a.type === 'plus' ? 'circle-plus' : 'circle-minus', title: a.title, date: a.date || '' }));
+
+    // Hapus duplikat judul, tampilkan maksimal 10
+    const seen = new Set();
+    const uniq = [];
+    items.forEach(it => { if (!seen.has(it.title)) { seen.add(it.title); uniq.push(it); } });
+    list.innerHTML = uniq.length === 0
+        ? '<div class="notif-empty">Belum ada notifikasi.</div>'
+        : uniq.slice(0, 10).map(n => `
+            <div class="notif-item"><i class="fas fa-${n.icon}"></i><span>${esc(n.title)}</span><small>${esc(n.date)}</small></div>`).join('');
+}
+
+// Tutup panel notifikasi saat klik di luar
+if (typeof document !== 'undefined') {
+    document.addEventListener('click', (e) => {
+        const panel = document.getElementById('notifPanel');
+        if (panel && panel.classList.contains('open') &&
+            !e.target.closest('.notif-btn') && !e.target.closest('.notif-panel')) {
+            panel.classList.remove('open');
+        }
+    });
 }
 
 // ==================== RENDER MISSIONS ENGINE ====================
@@ -1123,6 +1438,7 @@ function getCurrentCount(type) {
 }
 
 function handleMission(missionId, type) {
+    if (impersonationBlocked()) return;
     if (type === 'youtube') startYoutubeMission(missionId);
     else if (type === 'monetag') startMonetagMission(missionId);
     else if (type === 'daily') claimDailyMission(missionId);
@@ -1215,7 +1531,7 @@ async function addPoints(pts, title, missionId) {
     });
     saveData();
 
-    if (supabaseClient && currentUser && currentUser.id && missionId && pts > 0) {
+    if (supabaseClient && currentUser && currentUser.id && missionId && pts > 0 && !isImpersonating()) {
         try {
             const { data, error } = await supabaseClient.rpc('record_mission_claim', {
                 p_mission_id: missionId
@@ -1336,6 +1652,7 @@ function renderWithdrawOptions() {
 }
 
 function requestWithdraw(pointsNeeded, amountStr) {
+    if (impersonationBlocked()) return;
     if (userPoints < pointsNeeded) {
         showToast(`⚠️ Poin Anda tidak cukup! Butuh ${pointsNeeded.toLocaleString()} poin.`, 'error');
         return;
@@ -1552,6 +1869,7 @@ function readImageProof(file) {
 
 // Kirim transfer manual: simpan ke tabel `deposits` (status pending + bukti).
 async function submitManualTransfer() {
+    if (impersonationBlocked()) return;
     if (!currentUser) {
         showToast('Silakan login terlebih dahulu.', 'warning');
         return;
@@ -1699,6 +2017,7 @@ function closeQRISModal() {
 }
 
 function confirmQRISPayment() {
+    if (impersonationBlocked()) return;
     if (!activeUpgradeTarget) return;
 
     if (activeUpgradeTarget.type.includes('YouTube')) youtubeUpgraded = true;
@@ -1751,7 +2070,7 @@ function renderReferral() {
 
     const refCode = currentUser ? currentUser.referralCode : 'MISI8899';
     const origin = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : '';
-    const refLink = `${origin}/register.html?ref=${encodeURIComponent(refCode)}`;
+    const refLink = `${origin}/register?ref=${encodeURIComponent(refCode)}`;
 
     container.innerHTML = `
         <div class="referral-card">
@@ -2042,7 +2361,7 @@ function renderAdminPanel() {
             <button class="btn-add" onclick="toggleAdminUserForm()">${adminShowUserForm ? '— Tutup Form' : '+ Tambah User'}</button>
             ${adminShowUserForm ? `
             <div class="admin-form">
-                ${supabaseClient && !adminEditingUserId ? '<input type="text" id="adminUserAuthId" placeholder="Auth User ID (UUID, dari Supabase Auth)" maxlength="40">' : ''}
+                ${supabaseClient && !adminEditingUserId ? '<input type="text" id="adminUserAuthId" placeholder="Auth User ID (UUID akun)" maxlength="40">' : ''}
                 <div class="form-row">
                     <input type="text" id="adminUserName" placeholder="Nama Lengkap" maxlength="60">
                     <input type="text" id="adminUserPhone" placeholder="No. HP / WhatsApp" maxlength="20">
@@ -2073,6 +2392,7 @@ function renderAdminPanel() {
                     <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
                         <div class="u-points">${Number(u.points || 0).toLocaleString()} pts</div>
                         <div style="display:flex;gap:4px;">
+                            <button class="btn-edit" onclick="loginAsUser('${esc(u.id)}')" title="Lihat dashboard user"><i class="fas fa-eye"></i></button>
                             <button class="btn-edit" onclick="editUserAdmin('${esc(u.id)}')"><i class="fas fa-pen"></i></button>
                             <button class="btn-delete-mission" onclick="deleteUserAdmin('${esc(u.id)}')"><i class="fas fa-trash-can"></i></button>
                         </div>
@@ -2118,13 +2438,31 @@ function renderAdminPanel() {
     `;
 
     // ---------- TAB: SETTING ----------
+    const bonusClaims = adminUsers.filter(u => u.bonus_claimed === true);
+    const bonusClaimsHtml = bonusClaims.length === 0
+        ? '<p style="font-size:12px;color:#888;">Belum ada klaim bonus.</p>'
+        : bonusClaims.map(u => {
+            let d = '';
+            if (u.bonus_claimed_at) {
+                try { d = new Date(u.bonus_claimed_at).toLocaleString('id-ID'); } catch (e) { d = String(u.bonus_claimed_at); }
+            }
+            return `
+                <div class="bank-item">
+                    <div>
+                        <div class="b-name">${esc(u.full_name || u.name || 'User')}</div>
+                        <div class="b-holder">Klaim ${esc(d)} • ${Number(u.points || 0).toLocaleString()} poin</div>
+                    </div>
+                    <button class="btn-delete-mission" onclick="resetSignupBonusClaim('${esc(String(u.id))}')">Reset</button>
+                </div>`;
+        }).join('');
+
     const settingsTab = `
         <div class="admin-section">
             <h4><i class="fas fa-gear"></i> Pengaturan & Akun Admin</h4>
             <div class="account-info">
                 <div class="row"><span class="label">Nama Admin:</span><span class="value">${esc(currentUser.name)}</span></div>
                 <div class="row"><span class="label">Email:</span><span class="value">${esc(currentUser.email || '-')}</span></div>
-                <div class="row"><span class="label">Mode Data:</span><span class="value">${supabaseClient ? 'Supabase (server)' : 'Demo (lokal)'}</span></div>
+                <div class="row"><span class="label">Mode Data:</span><span class="value">${supabaseClient ? 'Online (server)' : 'Lokal (demo)'}</span></div>
             </div>
             <div class="account-menu">
                 <a href="dashboard.html" class="menu-item" style="text-decoration:none;color:inherit;">
@@ -2141,6 +2479,27 @@ function renderAdminPanel() {
             <p style="font-size:11px;color:#999;margin-top:12px;">
                 <i class="fas fa-circle-info"></i> QRIS & pembayaran masih simulasi. Hubungkan payment provider untuk verifikasi pembayaran sungguhan.
             </p>
+        </div>
+
+        <div class="admin-section">
+            <h4><i class="fas fa-gift"></i> Bonus Pendaftaran</h4>
+            <p style="font-size:12px;color:#888;margin-bottom:8px;">
+                Bonus otomatis untuk akun baru. Setiap user hanya menerima bonus <strong>sekali</strong>
+                (dijamin di server, tidak bisa di-klaim ulang).
+            </p>
+            <div class="admin-form">
+                <div class="form-row">
+                    <input type="number" id="adminBonusAmount" min="0" value="${Number(signupBonusConfig.amount) || 0}" placeholder="Jumlah Poin Bonus">
+                </div>
+                <label class="chk"><input type="checkbox" id="adminBonusActive" ${signupBonusConfig.is_active ? 'checked' : ''}> Bonus Aktif (diberikan saat pendaftaran)</label>
+                <div class="form-actions">
+                    <button class="btn-add" onclick="saveSignupBonusConfig()"><i class="fas fa-floppy-disk"></i> Simpan Pengaturan</button>
+                </div>
+            </div>
+            <div style="margin-top:14px;">
+                <div style="font-size:12px;color:#888;margin-bottom:6px;"><i class="fas fa-list"></i> Riwayat Klaim Bonus</div>
+                ${bonusClaimsHtml}
+            </div>
         </div>
 
         <div class="admin-section">
@@ -2336,7 +2695,7 @@ async function saveUserAdmin() {
                 if (error) { showToast(`⚠️ ${error.message}`, 'error'); return; }
             } else {
                 if (!authId) {
-                    showToast('⚠️ Mode Supabase: isi Auth User ID (UUID user yang sudah terdaftar di Supabase Auth).', 'warning');
+                    showToast('⚠️ Tambah user manual: isi Auth User ID (UUID akun yang sudah terdaftar).', 'warning');
                     return;
                 }
                 const { error } = await supabaseClient.rpc('admin_create_profile', {
@@ -2903,6 +3262,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (currentUser && currentUser.id) {
             await Promise.all([loadMissionsFromServer(), fetchMyWithdrawals()]);
         }
+    }
+
+    // Halaman publik (mis. index) bereaksi setelah sesi dipastikan
+    // (mis. tombol header berubah jadi "Dashboard" saat sudah login).
+    if (typeof window.misipulsaSessionReady === 'function') {
+        try { window.misipulsaSessionReady(); } catch (e) { console.warn(e); }
     }
 
     const path = window.location.pathname;

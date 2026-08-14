@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Login - MisiPulsa (Supabase Auth)</title>
+    <title>Login - MisiPulsa</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -23,7 +23,7 @@
             <div class="auth-header">
                 <a href="index.html" style="text-decoration:none;"><span class="icon"><i class="fas fa-mobile-screen-button"></i></span></a>
                 <h2>Selamat Datang Kembali!</h2>
-                <p>Login dengan Email & Password (atau No WA untuk Mode Demo)</p>
+                <p>Login dengan Email & Password</p>
             </div>
             
             <div class="auth-body">
@@ -42,10 +42,7 @@
                     </div>
 
                     <button type="submit" class="btn-auth" id="loginSubmitBtn">
-                        <i class="fas fa-sign-in-alt"></i> Masuk dengan Supabase Auth
-                    </button>
-                    <button type="button" class="btn-demo" onclick="quickLoginModal()">
-                        <i class="fas fa-bolt"></i> Login Cepat (Mode Demo)
+                        <i class="fas fa-sign-in-alt"></i> Masuk
                     </button>
                 </form>
 
@@ -74,11 +71,11 @@
             
             const result = await signInSupabase(email, password);
             if (result.success) {
-                showToast('✅ Login Supabase Berhasil!', 'success');
+                showToast('✅ Login Berhasil!', 'success');
                 setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
             } else {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Masuk dengan Supabase Auth';
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Masuk';
             }
         }
     </script>
