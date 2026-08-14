@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Login - MisiPulsa (Supabase Auth)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page-body">
+    
+    <div id="toast" class="toast"></div>
+
+    <div class="bg-effects">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="grid"></div>
+    </div>
+
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <a href="index.html" style="text-decoration:none;"><span class="icon"><i class="fas fa-mobile-screen-button"></i></span></a>
+                <h2>Selamat Datang Kembali!</h2>
+                <p>Login dengan Email & Password (atau No WA untuk Mode Demo)</p>
+            </div>
+            
+            <div class="auth-body">
+                <div class="anti-cheat-warning" id="antiCheatWarningModal">
+                    <i class="fas fa-shield-alt"></i> <span id="cheatReasonModal">Terdeteksi percobaan multiple account.</span>
+                </div>
+
+                <form id="loginFormSupabase" onsubmit="handleLoginSubmit(event)">
+                    <div class="input-group">
+                        <span class="icon-left"><i class="fas fa-envelope"></i></span>
+                        <input type="email" id="loginEmail" placeholder="Email Terdaftar (misal: user@example.com)" required>
+                    </div>
+                    <div class="input-group">
+                        <span class="icon-left"><i class="fas fa-lock"></i></span>
+                        <input type="password" id="loginPassword" placeholder="Password" required>
+                    </div>
+
+                    <button type="submit" class="btn-auth" id="loginSubmitBtn">
+                        <i class="fas fa-sign-in-alt"></i> Masuk dengan Supabase Auth
+                    </button>
+                    <button type="button" class="btn-demo" onclick="quickLoginModal()">
+                        <i class="fas fa-bolt"></i> Login Cepat (Mode Demo)
+                    </button>
+                </form>
+
+                <div class="auth-links">
+                    <a href="register.html"><i class="fas fa-user-plus"></i> Belum punya akun? Daftar gratis</a>
+                    <a href="reset-password.html"><i class="fas fa-key"></i> Lupa Password?</a>
+                    <a href="index.html" style="color: rgba(255,255,255,0.4); margin-top: 6px;"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUPABASE JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.min.js" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
+        <script src="config.js"></script>
+<script src="sistem.js"></script>
+    <script>
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('loginSubmitBtn');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Memverifikasi...';
+            
+            const result = await signInSupabase(email, password);
+            if (result.success) {
+                showToast('✅ Login Supabase Berhasil!', 'success');
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Masuk dengan Supabase Auth';
+            }
+        }
+    </script>
+</body>
+</html>

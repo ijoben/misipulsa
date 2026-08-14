@@ -1,0 +1,14 @@
+# Kredensial & file hasil generate (jangan dicommit)
+.env
+config.js
+
+# Harness uji sementara
+.e2e/
+
+# Data lokal Freebuff (database sesi — jangan di-upload)
+.freebuff/
+
+# Umum
+node_modules/
+*.log
+.DS_Store

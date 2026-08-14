@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Panel - MisiPulsa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body style="background: #0a0a1a; color: white; min-height: 100vh; padding: 20px 10px;">
+    
+    <div id="toast" class="toast"></div>
+
+    <div class="bg-effects">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="grid"></div>
+    </div>
+
+    <div style="max-width: 800px; margin: 0 auto; position: relative; z-index: 10; padding-bottom: 80px;">
+        
+        <!-- TOP NAV -->
+        <div style="display: flex; align-items: center; margin-bottom: 20px; padding: 12px 16px; background: rgba(255,255,255,0.05); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+            <span style="font-size: 18px; margin-right: 10px;"><i class="fas fa-wrench"></i></span>
+            <h2 style="font-size: 20px; font-weight: 800; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Admin Panel</h2>
+        </div>
+
+        <!-- MAIN ADMIN CONTAINER -->
+        <div id="adminContentContainer">
+            <div id="adminContent"></div>
+        </div>
+    </div>
+
+    <!-- SUPABASE JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.min.js" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
+        <script src="config.js"></script>
+<script src="sistem.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof checkSupabaseSession === 'function') {
+                await checkSupabaseSession();
+            }
+            // GUARD ADMIN: hanya user dengan isAdmin dari database yang boleh masuk.
+            if (!currentUser || !currentUser.isAdmin) {
+                showToast('⛔ Akses ditolak: hanya admin yang dapat membuka panel ini.', 'error');
+                setTimeout(() => { window.location.href = 'login.html'; }, 1200);
+                return;
+            }
+            // Muat misi & penarikan langsung dari tabel Supabase, lalu render
+            if (typeof openAdminPanel === 'function') await openAdminPanel();
+            else if (typeof renderAdminPanel === 'function') renderAdminPanel();
+        });
+    </script>
+</body>
+</html>

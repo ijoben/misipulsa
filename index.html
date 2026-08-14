@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MisiPulsa - Dapatkan Pulsa Gratis!</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <div id="toast" class="toast"></div>
+    
+    <!-- ============ LANDING PAGE ============ -->
+    <div class="landing-page" id="landingPage">
+        <div class="bg-effects">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
+            <div class="grid"></div>
+        </div>
+        
+        <!-- HEADER TOP BAR -->
+        <div class="top-bar">
+            <a href="index.html" class="logo">
+                <span class="icon"><i class="fas fa-mobile-screen-button"></i></span>
+                <span>MisiPulsa</span>
+            </a>
+            <div class="top-nav-links">
+                <a href="dashboard.html" class="btn-login-top" style="background: rgba(102, 126, 234, 0.2); border-color: rgba(102, 126, 234, 0.4);">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="login.html" class="btn-login-top">
+                    <i class="fas fa-sign-in-alt"></i> Masuk
+                </a>
+            </div>
+        </div>
+        
+        <div class="landing-content">
+            <div class="hero">
+                <div class="badge"><i class="fas fa-bolt"></i> Bonus 100 Poin untuk Pendaftar Baru!</div>
+                <h1>Dapatkan <span class="highlight">Pulsa Gratis</span><br>Cukup Nonton & Klik!</h1>
+                <p>Kumpulkan poin dengan misi seru: nonton YouTube, iklan, daily login, dan ajak teman. Tukarkan poinmu jadi <strong>pulsa</strong>!</p>
+                <div class="hero-buttons">
+                    <a href="register.html" class="btn-primary"><i class="fas fa-rocket"></i> Mulai Sekarang</a>
+                    <a href="login.html" class="btn-secondary"><i class="fas fa-gift"></i> Daftar & Dapatkan 100 Poin</a>
+                </div>
+                <div class="stats">
+                    <div class="stat"><div class="number">10K+</div><div class="label">Pengguna Aktif</div></div>
+                    <div class="stat"><div class="number">50K+</div><div class="label">Misi Selesai</div></div>
+                    <div class="stat"><div class="number">Rp 100M+</div><div class="label">Pulsa Dibagikan</div></div>
+                </div>
+            </div>
+            
+            <div class="features-section">
+                <div class="section-label">— Cara Dapat Pulsa —</div>
+                <div class="features-grid"><div class="feature-item"><span class="icon"><i class="fas fa-circle-play"></i></span><div class="name">Nonton YouTube</div><div class="desc">+75 poin / video</div></div>
+<div class="feature-item"><span class="icon"><i class="fas fa-bullhorn"></i></span><div class="name">Nonton Iklan</div><div class="desc">+50 poin / iklan</div></div>
+<div class="feature-item"><span class="icon"><i class="fas fa-calendar-day"></i></span><div class="name">Daily Login</div><div class="desc">+10 poin / hari</div></div>
+<div class="feature-item"><span class="icon"><i class="fas fa-users"></i></span><div class="name">Ajak Teman</div><div class="desc">+50 poin / referral</div></div>
+<div class="feature-item"><span class="icon"><i class="fas fa-credit-card"></i></span><div class="name">Tarik Pulsa</div><div class="desc">Min 10.000 poin</div></div>
+<div class="feature-item"><span class="icon"><i class="fas fa-crown" style="color:#ffc107;"></i></span><div class="name">Upgrade Misi</div><div class="desc">20x lebih banyak</div></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- FOOTER -->
+        <div class="landing-footer">
+            © 2024 <a href="index.html">MisiPulsa</a> — Dapatkan pulsa gratis dengan mudah!
+            <div style="margin-top: 6px; font-size: 11px; opacity: 0.7;">
+                <a href="index.html">Beranda</a> • 
+                <a href="dashboard.html">Dashboard</a> • 
+                <a href="login.html">Login</a> • 
+                <a href="register.html">Daftar</a> • 
+                <a href="admin.html">Admin</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUPABASE JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.min.js" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
+        <script src="config.js"></script>
+<script src="sistem.js"></script>
+</body>
+</html>
