@@ -255,6 +255,55 @@ async function loadSignupBonusConfig() {
     }
 }
 
+// Muat konfigurasi upgrade QRIS (on/off paket) — Supabase atau localStorage (demo)
+async function loadQrisUpgradeConfig() {
+    // Gabungkan simpanan lokal dulu (agar toggle admin tetap berlaku walau tabel server belum ada).
+    try {
+        const raw = localStorage.getItem('mp_qrisUpgradeConfig');
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object') qrisUpgradeConfig = { ...qrisUpgradeConfig, ...parsed };
+        }
+    } catch (e) { /* abaikan */ }
+    if (supabaseClient) {
+        try {
+            const { data, error } = await supabaseClient.from('upgrade_config').select('*');
+            if (!error && Array.isArray(data)) {
+                data.forEach(r => { if (r && r.id) qrisUpgradeConfig[r.id] = r.is_active !== false; });
+            }
+        } catch (e) {
+            console.warn('Load upgrade config failed:', e);
+        }
+    }
+}
+
+// Simpan konfigurasi upgrade QRIS dari tab Setting admin
+async function saveQrisUpgradeConfig() {
+    if (!currentUser || !currentUser.isAdmin) return;
+    const rows = [
+        { id: 'youtube_vip', is_active: !!document.getElementById('adminQrisYT')?.checked },
+        { id: 'ads_vip', is_active: !!document.getElementById('adminQrisAds')?.checked },
+        { id: 'unlimited_premium', is_active: !!document.getElementById('adminQrisPremium')?.checked }
+    ];
+    rows.forEach(r => { qrisUpgradeConfig[r.id] = r.is_active; });
+    // Simpan lokal dulu agar setting langsung berlaku (termasuk saat server belum siap).
+    try { localStorage.setItem('mp_qrisUpgradeConfig', JSON.stringify(qrisUpgradeConfig)); } catch (e) { /* abaikan */ }
+    if (supabaseClient) {
+        try {
+            const { error } = await supabaseClient.from('upgrade_config').upsert(rows, { onConflict: 'id' });
+            if (error) {
+                showToast(`⚠️ Gagal sinkron ke server: ${error.message}`, 'error');
+                return;
+            }
+        } catch (e) {
+            showToast(`⚠️ Gagal sinkron ke server: ${e.message}`, 'error');
+            return;
+        }
+    }
+    showToast('✅ Pengaturan upgrade QRIS disimpan!', 'success');
+    renderAdminPanel();
+}
+
 // Klaim bonus pendaftaran. Keamanan ada di server (RPC claim_signup_bonus):
 // hanya berhasil SEKALI seumur hidup; dipanggil berulang aman.
 async function claimSignupBonus() {
@@ -597,7 +646,7 @@ async function bootDashboard() {
     }
 
     if (supabaseClient && currentUser && currentUser.id) {
-        await Promise.all([loadMissionsFromServer(), fetchMyWithdrawals(), fetchMyDeposits(), loadBanksFromServer()]);
+        await Promise.all([loadMissionsFromServer(), fetchMyWithdrawals(), fetchMyDeposits(), loadBanksFromServer(), loadQrisUpgradeConfig()]);
         // Bonus pendaftaran sekali-klaim (dijamin server; hanya berhasil sekali)
         if (currentUser.bonusClaimed !== true && !isImpersonating()) {
             const claim = await claimSignupBonus();
@@ -952,6 +1001,15 @@ let pendingProofFiles = {}; // Bukti transfer yang dipilih member, menunggu tomb
 
 // Bonus pendaftaran: konfigurasi (diatur admin di tab Setting) & penanda klaim.
 let signupBonusConfig = { amount: 100, is_active: true };
+
+// Konfigurasi upgrade QRIS: on/off per paket (diatur admin di tab Setting).
+// Kunci: id di tabel `upgrade_config` -> nama paket yang tampil di member.
+const QRIS_PACKAGE_KEYS = { 'YouTube VIP': 'youtube_vip', 'Ads VIP': 'ads_vip', 'Unlimited Premium': 'unlimited_premium' };
+let qrisUpgradeConfig = { youtube_vip: true, ads_vip: true, unlimited_premium: true };
+function qrisIsOn(pkgName) {
+    const key = QRIS_PACKAGE_KEYS[pkgName];
+    return key ? qrisUpgradeConfig[key] !== false : true;
+}
 
 // Paket upgrade yang bisa dibeli lewat transfer manual
 const MANUAL_PACKAGES = {
@@ -1797,6 +1855,7 @@ function renderUpgrades() {
         : upgradeRequests.filter(r => r.user === (currentUser ? currentUser.name : ''));
 
     container.innerHTML = `
+        ${qrisIsOn('YouTube VIP') ? `
         <div class="upgrade-card">
             <div class="icon"><i class="fas fa-circle-play"></i></div>
             <span class="featured">BEST SELLER</span>
@@ -1810,8 +1869,9 @@ function renderUpgrades() {
                     ${youtubeUpgraded ? 'disabled' : ''}>
                 ${youtubeUpgraded ? '<i class="fas fa-circle-check"></i> Aktif' : '<i class="fas fa-bolt"></i> Upgrade Sekarang (QRIS)'}
             </button>
-        </div>
+        </div>` : ''}
 
+        ${qrisIsOn('Ads VIP') ? `
         <div class="upgrade-card">
             <div class="icon"><i class="fas fa-tv"></i></div>
             <h4>Upgrade Ads VIP</h4>
@@ -1824,8 +1884,9 @@ function renderUpgrades() {
                     ${adUpgraded ? 'disabled' : ''}>
                 ${adUpgraded ? '<i class="fas fa-circle-check"></i> Aktif' : '<i class="fas fa-bolt"></i> Upgrade Sekarang (QRIS)'}
             </button>
-        </div>
+        </div>` : ''}
 
+        ${qrisIsOn('Unlimited Premium') ? `
         <div class="upgrade-card">
             <div class="icon"><i class="fas fa-crown" style="color:#ffc107;"></i></div>
             <h4>Upgrade Unlimited Premium</h4>
@@ -1838,7 +1899,7 @@ function renderUpgrades() {
                     ${isPremium ? 'disabled' : ''}>
                 ${isPremium ? '<i class="fas fa-circle-check"></i> Aktif' : '<i class="fas fa-fire"></i> Upgrade Premium (QRIS)'}
             </button>
-        </div>
+        </div>` : ''}
 
         <div class="upgrade-card">
             <div class="icon"><i class="fas fa-building-columns"></i></div>
@@ -2737,6 +2798,22 @@ function renderAdminPanel() {
             <div style="margin-top:14px;">
                 <div style="font-size:12px;color:#888;margin-bottom:6px;"><i class="fas fa-list"></i> Riwayat Klaim Bonus</div>
                 ${bonusClaimsHtml}
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <h4><i class="fas fa-qrcode"></i> Upgrade QRIS (On/Off Paket)</h4>
+            <p style="font-size:12px;color:#888;margin-bottom:8px;">
+                Nyalakan/matikan paket upgrade QRIS yang tampil di halaman member (tab Upgrade).
+                Paket yang dimatikan disembunyikan dari member.
+            </p>
+            <div class="admin-form">
+                <label class="chk"><input type="checkbox" id="adminQrisYT" ${qrisUpgradeConfig.youtube_vip !== false ? 'checked' : ''}> <strong>YouTube VIP</strong> — Rp 10.000</label>
+                <label class="chk"><input type="checkbox" id="adminQrisAds" ${qrisUpgradeConfig.ads_vip !== false ? 'checked' : ''}> <strong>Ads VIP</strong> — Rp 15.000</label>
+                <label class="chk"><input type="checkbox" id="adminQrisPremium" ${qrisUpgradeConfig.unlimited_premium !== false ? 'checked' : ''}> <strong>Unlimited Premium</strong> — Rp 25.000</label>
+                <div class="form-actions">
+                    <button class="btn-add" onclick="saveQrisUpgradeConfig()"><i class="fas fa-floppy-disk"></i> Simpan Pengaturan QRIS</button>
+                </div>
             </div>
         </div>
 

@@ -590,6 +590,29 @@ REVOKE EXECUTE ON FUNCTION public.admin_credit_points(UUID, INT) FROM anon, publ
 GRANT EXECUTE ON FUNCTION public.admin_credit_points(UUID, INT) TO authenticated;
 
 -- ==========================================================================
+-- 12b. TABEL KONFIGURASI UPGRADE QRIS (on/off per paket, diatur admin tab Setting)
+-- ==========================================================================
+CREATE TABLE IF NOT EXISTS public.upgrade_config (
+    id TEXT PRIMARY KEY,
+    is_active BOOLEAN DEFAULT TRUE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+INSERT INTO public.upgrade_config (id, is_active)
+VALUES ('youtube_vip', TRUE), ('ads_vip', TRUE), ('unlimited_premium', TRUE)
+ON CONFLICT (id) DO NOTHING;
+
+ALTER TABLE public.upgrade_config ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Upgrade config is viewable by everyone." ON public.upgrade_config;
+CREATE POLICY "Upgrade config is viewable by everyone." ON public.upgrade_config
+    FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Admins can manage upgrade config" ON public.upgrade_config;
+CREATE POLICY "Admins can manage upgrade config" ON public.upgrade_config
+    FOR ALL USING (public.is_admin_user()) WITH CHECK (public.is_admin_user());
+
+-- ==========================================================================
 -- 13. BONUS PENDAFTARAN (sekali klaim per user, diatur admin di tab Setting)
 --     - profiles.bonus_claimed / bonus_claimed_at : penanda klaim per user
 --     - Bonus diberikan otomatis oleh trigger handle_new_user saat daftar;
