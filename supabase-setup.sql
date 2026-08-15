@@ -255,6 +255,9 @@ GRANT EXECUTE ON FUNCTION public.record_mission_claim(BIGINT) TO authenticated;
 -- ==========================================================================
 DROP POLICY IF EXISTS "Public profiles are viewable by everyone." ON public.profiles;
 DROP POLICY IF EXISTS "Users can update own profile." ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can view own profile." ON public.profiles;
 
 CREATE POLICY "Users can view own profile" ON public.profiles
     FOR SELECT USING (auth.uid() = id OR public.is_admin_user());
@@ -272,6 +275,7 @@ GRANT UPDATE (phone, full_name, streak) ON public.profiles TO authenticated;
 --   INSERT/UPDATE/DELETE : hanya admin
 -- ==========================================================================
 DROP POLICY IF EXISTS "Missions are viewable by everyone." ON public.missions;
+DROP POLICY IF EXISTS "Admins can manage missions" ON public.missions;
 
 CREATE POLICY "Missions are viewable by everyone." ON public.missions
     FOR SELECT USING (true);
@@ -293,9 +297,11 @@ CREATE POLICY "Users can view own withdrawals." ON public.withdrawals
 CREATE POLICY "Users can insert own withdrawals." ON public.withdrawals
     FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Admins can view all withdrawals" ON public.withdrawals;
 CREATE POLICY "Admins can view all withdrawals" ON public.withdrawals
     FOR SELECT USING (public.is_admin_user());
 
+DROP POLICY IF EXISTS "Admins can update withdrawals" ON public.withdrawals;
 CREATE POLICY "Admins can update withdrawals" ON public.withdrawals
     FOR UPDATE USING (public.is_admin_user()) WITH CHECK (public.is_admin_user());
 
@@ -305,6 +311,7 @@ CREATE POLICY "Admins can update withdrawals" ON public.withdrawals
 --   INSERT/UPDATE/DELETE langsung TIDAK diizinkan — hanya lewat RPC
 --   record_mission_claim (mencegah user memberi poin ke dirinya sendiri).
 -- ==========================================================================
+DROP POLICY IF EXISTS "Users can view own mission claims" ON public.user_missions;
 CREATE POLICY "Users can view own mission claims" ON public.user_missions
     FOR SELECT USING (auth.uid() = user_id);
 
