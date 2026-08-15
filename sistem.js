@@ -1252,7 +1252,7 @@ function renderApp() {
 
             <div class="tab-content ${currentTab === 'withdraw' ? 'active' : ''}" id="tab-withdraw">
                 <div class="page-title"><i class="fas fa-money-bill-transfer"></i> Tarik Poin</div>
-                <p style="color:#888;font-size:13px;margin-bottom:12px;">
+                <p style="color:#666;font-size:13px;margin-bottom:12px;">
                     Minimal penarikan <strong>10.000 poin = Rp 10.000</strong>
                 </p>
                 <div class="withdraw-grid" id="withdrawGrid"></div>
@@ -1773,11 +1773,11 @@ function openPlayerModal(title, iframeUrl, seconds, onComplete) {
             </div>
 
             <div style="margin-top:15px;">
-                <div style="font-size:12px;color:#667eea;font-weight:bold;margin-bottom:6px;">
+                <div style="font-size:12px;color:#5a67d8;font-weight:bold;margin-bottom:6px;">
                     ⏳ Sisa Waktu Tonton: <span id="timerCountdown">${seconds}</span> Detik
                 </div>
                 <div style="width:100%;background:#e0e0e0;height:8px;border-radius:4px;overflow:hidden;">
-                    <div id="timerProgress" style="width:100%;height:100%;background:linear-gradient(90deg, #667eea, #764ba2);transition:width 0.2s linear;"></div>
+                    <div id="timerProgress" style="width:100%;height:100%;background:linear-gradient(90deg, #5a67d8, #764ba2);transition:width 0.2s linear;"></div>
                 </div>
                 <div id="playerPauseHint" style="display:none;margin-top:8px;padding:8px 10px;border-radius:8px;background:#fff3cd;color:#856404;font-size:12px;">
                     <i class="fas fa-pause"></i> Tontonan dijeda — kembali ke tab ini untuk melanjutkan
@@ -1787,7 +1787,7 @@ function openPlayerModal(title, iframeUrl, seconds, onComplete) {
             <button id="claimRewardBtn" class="btn-paid" style="width:100%;margin-top:15px;display:none;" onclick="finishPlayerReward()">
                 <i class="fas fa-gift"></i> Klaim Poin Sekarang
             </button>
-            <button class="btn-close-qris" style="width:100%;margin-top:8px;background:#999;" onclick="closePlayerModal()">
+            <button class="btn-close-qris" style="width:100%;margin-top:8px;background:#666;" onclick="closePlayerModal()">
                 Tutup / Batal
             </button>
         </div>
@@ -1853,7 +1853,7 @@ function openPlayerModal(title, iframeUrl, seconds, onComplete) {
             if (videoWrap) {
                 videoWrap.innerHTML = `
                     <div style="text-align:center;color:white;padding:20px;">
-                        <div style="font-size:44px;margin-bottom:10px;"><i class="fas fa-circle-check" style="color:#4caf50;"></i></div>
+                        <div style="font-size:44px;margin-bottom:10px;"><i class="fas fa-circle-check" style="color:#2e7d32;"></i></div>
                         <div style="font-size:14px;">Misi Selesai — poin siap diklaim</div>
                     </div>`;
             }
@@ -1948,7 +1948,7 @@ function showWithdrawConfirmPopup() {
     modal.style.display = 'flex';
     modal.innerHTML = `
         <div class="qris-box">
-            <div class="qris-icon"><i class="fas fa-paper-plane" style="color:#667eea;"></i></div>
+            <div class="qris-icon"><i class="fas fa-paper-plane" style="color:#5a67d8;"></i></div>
             <h3>Konfirmasi Penarikan</h3>
             <p>Penarikan <strong>${esc(amountStr)}</strong> akan dikirim ke:</p>
             <div class="wd-confirm-dest">
@@ -2017,7 +2017,7 @@ function renderWithdrawHistory() {
     if (!container) return;
 
     if (withdrawHistory.length === 0) {
-        container.innerHTML = '<div style="color:#999;font-size:12px;text-align:center;padding:10px;">Belum ada riwayat penarikan.</div>';
+        container.innerHTML = '<div style="color:#666;font-size:12px;text-align:center;padding:10px;">Belum ada riwayat penarikan.</div>';
         return;
     }
 
@@ -2092,7 +2092,7 @@ function renderUpgrades() {
         <div class="upgrade-card">
             <div class="icon"><i class="fas fa-building-columns"></i></div>
             <h4>Upgrade via Transfer Bank</h4>
-            <p style="font-size:12px;color:#888;">Buat permintaan, lalu selesaikan pembayaran lewat tombol di <strong>riwayat</strong> di bawah: transfer ke bank → upload bukti → kirim.</p>
+            <p style="font-size:12px;color:#666;">Buat permintaan, lalu selesaikan pembayaran lewat tombol di <strong>riwayat</strong> di bawah: transfer ke bank → upload bukti → kirim.</p>
 
             <div class="pkg-picker">
                 ${Object.entries(MANUAL_PACKAGES).map(([name, p]) => `
@@ -2108,7 +2108,7 @@ function renderUpgrades() {
 
             <h4 style="margin:16px 0 8px;font-size:14px;"><i class="fas fa-receipt"></i> Riwayat Upgrade</h4>
             <div id="myDepositsList">
-                ${myDeps.length === 0 ? '<p style="font-size:12px;color:#999;">Belum ada permintaan. Buat permintaan di atas, lalu selesaikan pembayaran lewat tombol di sini.</p>' :
+                ${myDeps.length === 0 ? '<p style="font-size:12px;color:#666;">Belum ada permintaan. Buat permintaan di atas, lalu selesaikan pembayaran lewat tombol di sini.</p>' :
                 myDeps.map(d => renderDepositRow(d)).join('')}
             </div>
         </div>
@@ -2154,20 +2154,20 @@ function renderDepositRow(d) {
         actions = `<div class="proof-status"><i class="fas fa-file-image"></i> Bukti terkirim — menunggu verifikasi admin</div>`;
     } else if (st === 'approved') {
         badge = '<span class="ur-status approved">Disetujui</span>';
-        actions = `<div class="proof-status"><i class="fas fa-circle-check" style="color:#4caf50;"></i> Upgrade aktif</div>`;
+        actions = `<div class="proof-status"><i class="fas fa-circle-check" style="color:#2e7d32;"></i> Upgrade aktif</div>`;
     } else {
         badge = '<span class="ur-status rejected">Ditolak</span>';
-        actions = `<div class="proof-status"><i class="fas fa-circle-xmark" style="color:#f44336;"></i> Hubungi admin jika ini keliru</div>`;
+        actions = `<div class="proof-status"><i class="fas fa-circle-xmark" style="color:#c62828;"></i> Hubungi admin jika ini keliru</div>`;
     }
 
     return `
-        <div class="upgrade-request-item" style="border-left-color:#667eea;">
+        <div class="upgrade-request-item" style="border-left-color:#5a67d8;">
             <div class="ur-info">
                 <span class="ur-type">${esc(d.note || d.type || d.method || 'Transfer')}</span>
-                <span class="ur-amount">${amount}${code ? ` <small style="font-size:10px;color:#888;">kode ${code}</small>` : ''}</span>
+                <span class="ur-amount">${amount}${code ? ` <small style="font-size:10px;color:#666;">kode ${code}</small>` : ''}</span>
                 ${badge}
             </div>
-            <div style="font-size:11px;color:#999;margin-top:4px;">${st === 'waiting' ? dateTxt : `${esc(d.method || '')} • ${dateTxt}`}</div>
+            <div style="font-size:11px;color:#666;margin-top:4px;">${st === 'waiting' ? dateTxt : `${esc(d.method || '')} • ${dateTxt}`}</div>
             ${actions}
         </div>`;
 }
@@ -2292,7 +2292,7 @@ async function pickDepositProof(id, event) {
     const sendBtn = document.getElementById('sendBtn-' + id);
     if (sendBtn) sendBtn.disabled = false;
     const st = document.getElementById('proofStatus-' + id);
-    if (st) st.innerHTML = '<i class="fas fa-file-image" style="color:#4caf50;"></i> Bukti siap dikirim — klik <strong>Kirim Bukti</strong>.';
+    if (st) st.innerHTML = '<i class="fas fa-file-image" style="color:#2e7d32;"></i> Bukti siap dikirim — klik <strong>Kirim Bukti</strong>.';
     showToast('Bukti siap. Klik "Kirim Bukti".', 'success');
 }
 
@@ -2388,11 +2388,11 @@ function openProofModal(id) {
     modal.innerHTML = `
         <div class="qris-box" style="max-width:440px;">
             <h3><i class="fas fa-image"></i> Bukti Transfer</h3>
-            <p style="font-size:12px;color:#888;margin-bottom:12px;">
+            <p style="font-size:12px;color:#666;margin-bottom:12px;">
                 ${esc(r.user_name || r.user)} • ${esc(r.note || '')}${r.note ? ' • ' : ''}${esc(r.amount)} • ${esc(r.status || '')}
             </p>
             <img src="${esc(r.proof_image)}" alt="Bukti Transfer" style="width:100%;border-radius:12px;max-height:60vh;object-fit:contain;background:#f0f0f0;">
-            <button class="btn-close-qris" style="width:100%;margin-top:12px;background:#667eea;" onclick="closeProofModal()">
+            <button class="btn-close-qris" style="width:100%;margin-top:12px;background:#5a67d8;" onclick="closeProofModal()">
                 <i class="fas fa-xmark"></i> Tutup
             </button>
         </div>
@@ -2487,7 +2487,7 @@ function renderReferral() {
     container.innerHTML = `
         <div class="referral-card">
             <h4>Kode Referral Anda</h4>
-            <p style="font-size:12px;color:#888;">Bagikan kode ini ke temanmu dan dapatkan <strong>+50 Poin</strong> setiap pendaftaran!</p>
+            <p style="font-size:12px;color:#666;">Bagikan kode ini ke temanmu dan dapatkan <strong>+50 Poin</strong> setiap pendaftaran!</p>
             <div class="code-box" onclick="copyReferralCode('${esc(refCode)}')">${esc(refCode)}</div>
 
             <div class="referral-link-box">
@@ -2568,7 +2568,7 @@ function renderAccount() {
             </div>
             <div class="row">
                 <span class="label">Status Akun:</span>
-                <span class="value" style="color:#4caf50;">
+                <span class="value" style="color:#2e7d32;">
                     ${isPremium ? '<i class="fas fa-crown"></i> VIP Premium' : (youtubeUpgraded || adUpgraded ? '<i class="fas fa-rocket"></i> Upgrade' : '<i class="fas fa-user"></i> Free Member')}
                 </span>
             </div>
@@ -2580,7 +2580,7 @@ function renderAccount() {
 
         <div class="account-info">
             <h4 style="margin:0 0 8px;"><i class="fas fa-wallet"></i> Data Penarikan</h4>
-            <p style="font-size:11px;color:#888;margin-bottom:10px;">No. rekening / HP / e-wallet tujuan penarikan. Dipakai otomatis saat klik Tarik Poin.</p>
+            <p style="font-size:11px;color:#666;margin-bottom:10px;">No. rekening / HP / e-wallet tujuan penarikan. Dipakai otomatis saat klik Tarik Poin.</p>
             <select id="payMethod" onchange="togglePayBank()" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:white;color:#333;margin-bottom:8px;">
                 <option value="Transfer Bank" ${isBankInit ? 'selected' : ''}>Transfer Bank</option>
                 <option value="Pulsa" ${payMethodInit === 'Pulsa' ? 'selected' : ''}>Pulsa (Telkomsel / XL / dll)</option>
@@ -2676,7 +2676,7 @@ function renderHistory() {
                 <div class="title">${esc(act.title)}</div>
                 <div class="date">${esc(act.date)}</div>
             </div>
-            <span style="font-weight:bold;color:${act.type === 'plus' ? '#4caf50' : '#f44336'};">
+            <span style="font-weight:bold;color:${act.type === 'plus' ? '#2e7d32' : '#c62828'};">
                 ${esc(act.points)}
             </span>
         </div>
@@ -2690,7 +2690,7 @@ function renderAdminPanel() {
 
     // Pengaman ganda: jangan render panel jika bukan admin
     if (!currentUser || !currentUser.isAdmin) {
-        container.innerHTML = '<p style="color:#f44336;"><i class="fas fa-ban"></i> Akses ditolak.</p>';
+        container.innerHTML = '<p style="color:#c62828;"><i class="fas fa-ban"></i> Akses ditolak.</p>';
         showToast('⛔ Akses ditolak: Anda bukan admin.', 'error');
         return;
     }
@@ -2700,25 +2700,25 @@ function renderAdminPanel() {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
             <div class="admin-stat-card">
                 <div class="admin-stat-label">Total User</div>
-                <div class="admin-stat-value" style="color:#667eea;">${adminStats.totalUsers !== null ? adminStats.totalUsers.toLocaleString() : '—'}</div>
+                <div class="admin-stat-value" style="color:#5a67d8;">${adminStats.totalUsers !== null ? adminStats.totalUsers.toLocaleString() : '—'}</div>
             </div>
             <div class="admin-stat-card">
                 <div class="admin-stat-label">Total Penarikan Disetujui (Rp)</div>
-                <div class="admin-stat-value" style="color:#4caf50;">Rp ${adminStats.approvedPoints.toLocaleString()}</div>
+                <div class="admin-stat-value" style="color:#2e7d32;">Rp ${adminStats.approvedPoints.toLocaleString()}</div>
             </div>
             <div class="admin-stat-card">
                 <div class="admin-stat-label">Antrean Penarikan (Pending)</div>
-                <div class="admin-stat-value" style="color:#ff9800;">${adminStats.pendingWithdraw}</div>
+                <div class="admin-stat-value" style="color:#c2410c;">${adminStats.pendingWithdraw}</div>
             </div>
             <div class="admin-stat-card">
                 <div class="admin-stat-label">Total Misi Aktif</div>
-                <div class="admin-stat-value" style="color:#e91e63;">${missions.length}</div>
+                <div class="admin-stat-value" style="color:#d81b60;">${missions.length}</div>
             </div>
         </div>
 
         <div class="admin-section">
             <h4><i class="fas fa-money-bill-wave"></i> Penarikan Terbaru</h4>
-            ${withdrawRequests.length === 0 ? '<p style="font-size:12px;color:#888;">Belum ada penarikan.</p>' :
+            ${withdrawRequests.length === 0 ? '<p style="font-size:12px;color:#666;">Belum ada penarikan.</p>' :
             withdrawRequests.slice(0, 5).map(w => `
                 <div class="wd-request-item">
                     <div class="wd-info">
@@ -2760,7 +2760,7 @@ function renderAdminPanel() {
                     <button class="btn-outline" onclick="cancelWdEdit()">Batal</button>
                 </div>
             </div>` : ''}
-            ${withdrawRequests.length === 0 ? '<p style="font-size:12px;color:#888;">Tidak ada data penarikan.</p>' :
+            ${withdrawRequests.length === 0 ? '<p style="font-size:12px;color:#666;">Tidak ada data penarikan.</p>' :
             withdrawRequests.map(w => {
                 const isPending = (w.status || 'pending') === 'pending';
                 return `
@@ -2771,7 +2771,7 @@ function renderAdminPanel() {
                         <span class="status-badge ${esc(w.status || 'pending')}">${esc(String(w.status || 'pending').toUpperCase())}</span>
                     </div>
                     <div style="font-size:11px;color:#555;margin-top:4px;">
-                        <i class="fas fa-paper-plane" style="color:#667eea;"></i> Tujuan: <strong>${esc(w.method || '-')}${w.account_dest ? ` → ${esc(w.account_dest)}` : ''}</strong>
+                        <i class="fas fa-paper-plane" style="color:#5a67d8;"></i> Tujuan: <strong>${esc(w.method || '-')}${w.account_dest ? ` → ${esc(w.account_dest)}` : ''}</strong>
                     </div>
                     <div class="wd-actions">
                         ${isPending ? `
@@ -2786,7 +2786,7 @@ function renderAdminPanel() {
 
         <div id="adminTxDepo" class="admin-section ${adminActiveTxTab === 'depo' ? '' : 'admin-hidden'}">
             <h4><i class="fas fa-building-columns"></i> Riwayat Deposit / Upgrade</h4>
-            <p style="font-size:11px;color:#888;margin:-4px 0 10px;"><i class="fas fa-circle-info"></i> Verifikasi transfer: <strong>3 digit terakhir nominal</strong> (mis. Rp 10.023 → kode <strong>023</strong>) adalah kode unik transaksi — cocokkan dengan bukti transfer member.</p>
+            <p style="font-size:11px;color:#666;margin:-4px 0 10px;"><i class="fas fa-circle-info"></i> Verifikasi transfer: <strong>3 digit terakhir nominal</strong> (mis. Rp 10.023 → kode <strong>023</strong>) adalah kode unik transaksi — cocokkan dengan bukti transfer member.</p>
             <button class="btn-add" onclick="toggleAdminDepoForm()">${adminShowDepoForm ? '— Tutup Form' : '+ Tambah Deposit Manual'}</button>
             ${adminShowDepoForm ? `
             <div class="admin-form">
@@ -2810,13 +2810,13 @@ function renderAdminPanel() {
                         <option value="rejected">Ditolak</option>
                     </select>
                 </div>
-                <p style="font-size:11px;color:#888;margin-bottom:6px;"><i class="fas fa-circle-info"></i> Deposit "Disetujui" + User ID terisi otomatis menambah poin user saat dibuat (1 poin = Rp 1).</p>
+                <p style="font-size:11px;color:#666;margin-bottom:6px;"><i class="fas fa-circle-info"></i> Deposit "Disetujui" + User ID terisi otomatis menambah poin user saat dibuat (1 poin = Rp 1).</p>
                 <div class="form-actions">
                     <button class="btn-add" onclick="saveDepoAdmin()"><i class="fas fa-floppy-disk"></i> ${adminEditingDepoId ? 'Simpan Perubahan' : 'Simpan Deposit'}</button>
                     <button class="btn-outline" onclick="cancelDepoEdit()">Batal</button>
                 </div>
             </div>` : ''}
-            ${depoList.length === 0 ? '<p style="font-size:12px;color:#888;">Belum ada transaksi deposit.</p>' :
+            ${depoList.length === 0 ? '<p style="font-size:12px;color:#666;">Belum ada transaksi deposit.</p>' :
             depoList.map(r => {
                 // Waiting (bukti dikirim) & pending: admin bisa lihat bukti + setujui/tolak
                 const isPending = ['waiting', 'pending'].includes(r.status || 'pending');
@@ -2869,7 +2869,7 @@ function renderAdminPanel() {
                     <button class="btn-outline" onclick="cancelUserEdit()">Batal</button>
                 </div>
             </div>` : ''}
-            ${adminUsers.length === 0 ? '<p style="font-size:12px;color:#888;">Tidak ada user.</p>' :
+            ${adminUsers.length === 0 ? '<p style="font-size:12px;color:#666;">Tidak ada user.</p>' :
             adminUsers.map(u => `
                 <div class="admin-user-item">
                     <div>
@@ -2928,7 +2928,7 @@ function renderAdminPanel() {
     // ---------- TAB: SETTING ----------
     const bonusClaims = adminUsers.filter(u => u.bonus_claimed === true);
     const bonusClaimsHtml = bonusClaims.length === 0
-        ? '<p style="font-size:12px;color:#888;">Belum ada klaim bonus.</p>'
+        ? '<p style="font-size:12px;color:#666;">Belum ada klaim bonus.</p>'
         : bonusClaims.map(u => {
             let d = '';
             if (u.bonus_claimed_at) {
@@ -2964,14 +2964,14 @@ function renderAdminPanel() {
                     <span class="arrow">›</span>
                 </div>
             </div>
-            <p style="font-size:11px;color:#999;margin-top:12px;">
+            <p style="font-size:11px;color:#666;margin-top:12px;">
                 <i class="fas fa-circle-info"></i> QRIS & pembayaran masih simulasi. Hubungkan payment provider untuk verifikasi pembayaran sungguhan.
             </p>
         </div>
 
         <div class="admin-section">
             <h4><i class="fas fa-gift"></i> Bonus Pendaftaran</h4>
-            <p style="font-size:12px;color:#888;margin-bottom:8px;">
+            <p style="font-size:12px;color:#666;margin-bottom:8px;">
                 Bonus otomatis untuk akun baru. Setiap user hanya menerima bonus <strong>sekali</strong>
                 (dijamin di server, tidak bisa di-klaim ulang).
             </p>
@@ -2985,14 +2985,14 @@ function renderAdminPanel() {
                 </div>
             </div>
             <div style="margin-top:14px;">
-                <div style="font-size:12px;color:#888;margin-bottom:6px;"><i class="fas fa-list"></i> Riwayat Klaim Bonus</div>
+                <div style="font-size:12px;color:#666;margin-bottom:6px;"><i class="fas fa-list"></i> Riwayat Klaim Bonus</div>
                 ${bonusClaimsHtml}
             </div>
         </div>
 
         <div class="admin-section">
             <h4><i class="fas fa-qrcode"></i> Upgrade QRIS (On/Off Paket)</h4>
-            <p style="font-size:12px;color:#888;margin-bottom:8px;">
+            <p style="font-size:12px;color:#666;margin-bottom:8px;">
                 Nyalakan/matikan paket upgrade QRIS yang tampil di halaman member (tab Upgrade).
                 Paket yang dimatikan disembunyikan dari member.
             </p>
@@ -3008,7 +3008,7 @@ function renderAdminPanel() {
 
         <div class="admin-section">
             <h4><i class="fas fa-building-columns"></i> Kelola Bank Manual (Transfer Member)</h4>
-            <p style="font-size:12px;color:#888;margin-bottom:8px;">Rekening ini tampil di halaman member (tab Upgrade) sebagai tujuan transfer manual. Hanya bank aktif yang ditampilkan.</p>
+            <p style="font-size:12px;color:#666;margin-bottom:8px;">Rekening ini tampil di halaman member (tab Upgrade) sebagai tujuan transfer manual. Hanya bank aktif yang ditampilkan.</p>
             <button class="btn-add" onclick="toggleAdminBankForm()">${adminShowBankForm ? '— Tutup Form' : '+ Tambah Bank'}</button>
             ${adminShowBankForm ? `
             <div class="admin-form">
@@ -3024,7 +3024,7 @@ function renderAdminPanel() {
                 </div>
             </div>` : ''}
             <div class="bank-list">
-                ${banks.length === 0 ? '<p style="font-size:12px;color:#888;">Belum ada bank.</p>' :
+                ${banks.length === 0 ? '<p style="font-size:12px;color:#666;">Belum ada bank.</p>' :
                 banks.map(b => `
                     <div class="bank-item">
                         <div>
