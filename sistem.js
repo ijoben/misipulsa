@@ -691,6 +691,30 @@ function recomputeAdminStats() {
         .reduce((sum, w) => sum + (w.points || 0), 0);
 }
 
+// Ubah nilai rupiah ("Rp 10.000", "10000", angka) menjadi angka murni.
+function parseRupiah(v) {
+    if (typeof v === 'number' && Number.isFinite(v)) return v;
+    const n = parseInt(String(v || '').replace(/[^\d]/g, ''), 10);
+    return Number.isFinite(n) ? n : 0;
+}
+
+// Laba/rugi admin: pendapatan deposit disetujui − pengeluaran penarikan disetujui.
+function computeAdminProfit() {
+    const depoList = getDeposits();
+    const income = depoList
+        .filter(d => d.status === 'approved')
+        .reduce((sum, d) => sum + parseRupiah(d.amount), 0);
+    const expense = withdrawRequests
+        .filter(w => w.status === 'approved')
+        .reduce((sum, w) => sum + parseRupiah(w.amount), 0);
+    return { income, expense, net: income - expense };
+}
+
+// Format angka ke rupiah (1.000.000)
+function fmtRupiah(n) {
+    return (Number(n) || 0).toLocaleString('id-ID');
+}
+
 // Muat daftar user dari tabel `profiles` untuk tab User (policy admin).
 // Catatan: email ada di auth.users (tidak bisa di-select dengan anon key),
 // jadi ditampilkan nomor HP / nama.
@@ -2698,6 +2722,13 @@ function renderAdminPanel() {
         return;
     }
 
+    // Data bersama: jumlah pending untuk badge & laba/rugi untuk card statistik
+    const depoList = getDeposits();
+    const wdPendingCount = withdrawRequests.filter(w => (w.status || 'pending') === 'pending').length;
+    const depoPendingCount = depoList.filter(d => ['waiting', 'pending'].includes(d.status || 'pending')).length;
+    const adminProfit = computeAdminProfit();
+    const profitPositive = adminProfit.net >= 0;
+
     // ---------- TAB: STATISTIK ----------
     const statsTab = `
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
@@ -2719,6 +2750,15 @@ function renderAdminPanel() {
             </div>
         </div>
 
+        <div class="admin-profit-card ${profitPositive ? 'profit' : 'loss'}">
+            <div class="admin-profit-label"><i class="fas fa-scale-balanced"></i> Laba Bersih (Pendapatan Deposit − Pengeluaran WD)</div>
+            <div class="admin-profit-value">${profitPositive ? '+' : '−'} Rp ${fmtRupiah(Math.abs(adminProfit.net))}</div>
+            <div class="admin-profit-breakdown">
+                <span class="profit-income"><i class="fas fa-arrow-down"></i> Pendapatan Deposit Disetujui: <strong>Rp ${fmtRupiah(adminProfit.income)}</strong></span>
+                <span class="profit-expense"><i class="fas fa-arrow-up"></i> Pengeluaran WD Disetujui: <strong>Rp ${fmtRupiah(adminProfit.expense)}</strong></span>
+            </div>
+        </div>
+
         <div class="admin-section">
             <h4><i class="fas fa-money-bill-wave"></i> Penarikan Terbaru</h4>
             ${withdrawRequests.length === 0 ? '<p style="font-size:12px;color:#666;">Belum ada penarikan.</p>' :
@@ -2734,11 +2774,10 @@ function renderAdminPanel() {
     `;
 
     // ---------- TAB: TRANSAKSI (WD / DEPO) ----------
-    const depoList = getDeposits();
     const txTab = `
         <div class="admin-tx-tabs">
-            <button type="button" class="admin-tx-tab ${adminActiveTxTab === 'wd' ? 'active' : ''}" data-txtab="wd" onclick="switchAdminTxTab('wd')"><i class="fas fa-money-bill-wave"></i> Penarikan (WD)</button>
-            <button type="button" class="admin-tx-tab ${adminActiveTxTab === 'depo' ? 'active' : ''}" data-txtab="depo" onclick="switchAdminTxTab('depo')"><i class="fas fa-building-columns"></i> Deposit / Upgrade</button>
+            <button type="button" class="admin-tx-tab ${adminActiveTxTab === 'wd' ? 'active' : ''}" data-txtab="wd" onclick="switchAdminTxTab('wd')"><i class="fas fa-money-bill-wave"></i> Penarikan (WD)${wdPendingCount > 0 ? ` <span class="tx-tab-badge">${wdPendingCount}</span>` : ''}</button>
+            <button type="button" class="admin-tx-tab ${adminActiveTxTab === 'depo' ? 'active' : ''}" data-txtab="depo" onclick="switchAdminTxTab('depo')"><i class="fas fa-building-columns"></i> Deposit / Upgrade${depoPendingCount > 0 ? ` <span class="tx-tab-badge">${depoPendingCount}</span>` : ''}</button>
         </div>
 
         <div id="adminTxWd" class="admin-section ${adminActiveTxTab === 'wd' ? '' : 'admin-hidden'}">
@@ -3057,6 +3096,7 @@ function renderAdminPanel() {
             </div>
             <div class="nav-item ${adminActiveTab === 'tx' ? 'active' : ''}" data-atab="tx" onclick="switchAdminTab('tx')">
                 <i class="fas fa-exchange-alt"></i><span>Transaksi</span>
+                ${(wdPendingCount + depoPendingCount) > 0 ? `<span class="nav-count-badge">${wdPendingCount + depoPendingCount}</span>` : ''}
             </div>
             <div class="nav-item ${adminActiveTab === 'users' ? 'active' : ''}" data-atab="users" onclick="switchAdminTab('users')">
                 <i class="fas fa-users"></i><span>User</span>

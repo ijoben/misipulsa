@@ -1113,6 +1113,33 @@ html.dashboard-html body { height: 100%; overflow: hidden; }
 .admin-tx-tab { flex: 1; text-align: center; padding: 9px 0; border-radius: 9px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.55); cursor: pointer; transition: 0.3s; background: transparent; border: none; }
 .admin-tx-tab:hover:not(.active) { background: rgba(255,255,255,0.08); color: #fff; }
 .admin-tx-tab.active { background: linear-gradient(135deg, #5a67d8, #764ba2); color: white; }
+
+/* Badge jumlah pending di sub-tab Transaksi & bottom nav admin */
+.tx-tab-badge {
+    display: inline-block; margin-left: 4px; min-width: 17px; height: 17px; padding: 0 5px;
+    border-radius: 9px; background: #ef4444; color: #fff; font-size: 10px; font-weight: 700;
+    line-height: 17px; text-align: center; vertical-align: middle; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.nav-count-badge {
+    position: absolute; top: 0; right: calc(50% - 24px); min-width: 16px; height: 16px; padding: 0 4px;
+    border-radius: 8px; background: #ef4444; color: #fff; font-size: 10px; font-weight: 700;
+    line-height: 16px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.35); z-index: 5;
+}
+
+/* Card Laba Bersih admin (untung/rugi) */
+.admin-profit-card {
+    margin-bottom: 16px; padding: 16px; border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: linear-gradient(135deg, rgba(46,125,50,0.18), rgba(255,255,255,0.04));
+}
+.admin-profit-card.loss { background: linear-gradient(135deg, rgba(198,40,40,0.18), rgba(255,255,255,0.04)); }
+.admin-profit-label { font-size: 11px; color: rgba(255,255,255,0.6); }
+.admin-profit-value { font-size: 26px; font-weight: 800; margin-top: 4px; letter-spacing: 0.3px; }
+.admin-profit-card.profit .admin-profit-value { color: #4ade80; }
+.admin-profit-card.loss .admin-profit-value { color: #f87171; }
+.admin-profit-breakdown { display: flex; flex-direction: column; gap: 3px; margin-top: 10px; font-size: 11px; color: rgba(255,255,255,0.65); }
+.admin-profit-breakdown .profit-income { color: #4ade80; }
+.admin-profit-breakdown .profit-expense { color: #f87171; }
 .admin-bottom-nav { background: rgba(18, 18, 40, 0.95); border-top: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); position: fixed; bottom: 0; left: 0; right: 0; max-width: 800px; margin: 0 auto; }
 .admin-bottom-nav .nav-item { color: rgba(255,255,255,0.45); }
 .admin-bottom-nav .nav-item:hover { color: #fff; }
