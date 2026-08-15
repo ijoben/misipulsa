@@ -1650,15 +1650,7 @@ function renderWithdrawOptions() {
         { amount: 'Rp 100.000', points: 100000 }
     ];
 
-    const payMethod = (currentUser && currentUser.paymentMethod) || '';
-    const payAccount = ((currentUser && currentUser.paymentAccount) || '').trim();
-    const payBank = ((currentUser && currentUser.paymentBank) || '').trim();
-    const destLabel = payMethod === 'Transfer Bank' && payBank ? `Transfer Bank ${payBank}` : payMethod;
-    const destInfo = payAccount
-        ? `<p style="font-size:12px;color:#4caf50;margin-bottom:10px;"><i class="fas fa-circle-check"></i> Dana dikirim ke <strong>${esc(destLabel)} (${esc(payAccount)})</strong> — ubah di tab Akun.</p>`
-        : `<p style="font-size:12px;color:#ff9800;margin-bottom:10px;"><i class="fas fa-circle-exclamation"></i> Lengkapi <strong>Data Penarikan</strong> di tab Akun sebelum tarik poin.</p>`;
-
-    container.innerHTML = destInfo + options.map(opt => `
+    container.innerHTML = options.map(opt => `
         <div class="withdraw-btn" onclick="requestWithdraw(${esc(opt.points)}, '${esc(opt.amount)}')">
             <div class="amount">${esc(opt.amount)}</div>
             <div class="points">${esc(opt.points.toLocaleString())} Poin</div>
@@ -1668,6 +1660,8 @@ function renderWithdrawOptions() {
         </div>
     `).join('');
 }
+
+let pendingWithdraw = null; // Data penarikan yang menunggu konfirmasi popup
 
 function requestWithdraw(pointsNeeded, amountStr) {
     if (impersonationBlocked()) return;
@@ -1690,6 +1684,47 @@ function requestWithdraw(pointsNeeded, amountStr) {
     }
     const bankName = (currentUser && currentUser.paymentBank || '').trim();
     const methodLabel = method === 'Transfer Bank' && bankName ? `Transfer Bank ${bankName}` : method;
+
+    // Tampilkan popup konfirmasi dengan tujuan penarikan
+    pendingWithdraw = { pointsNeeded, amountStr, methodLabel, accountNo };
+    showWithdrawConfirmPopup();
+}
+
+// Popup konfirmasi penarikan — tampilkan tujuan (norek/HP/e-wallet) sebelum diproses
+function showWithdrawConfirmPopup() {
+    if (!pendingWithdraw) return;
+    const old = document.getElementById('wdConfirmModal');
+    if (old) old.remove();
+    const { amountStr, methodLabel, accountNo } = pendingWithdraw;
+    const modal = document.createElement('div');
+    modal.id = 'wdConfirmModal';
+    modal.className = 'qris-modal show';
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="qris-box">
+            <div class="qris-icon"><i class="fas fa-paper-plane" style="color:#667eea;"></i></div>
+            <h3>Konfirmasi Penarikan</h3>
+            <p>Penarikan <strong>${esc(amountStr)}</strong> akan dikirim ke:</p>
+            <div class="wd-confirm-dest">
+                <i class="fas fa-university"></i>
+                <div>
+                    <div class="wd-confirm-method">${esc(methodLabel)}</div>
+                    <div class="wd-confirm-account">${esc(accountNo)}</div>
+                </div>
+            </div>
+            <button class="btn-paid" onclick="confirmWithdrawPopup(true)"><i class="fas fa-circle-check"></i> Ya, Tarik Sekarang</button>
+            <button class="btn-close-qris" onclick="confirmWithdrawPopup(false)"><i class="fas fa-xmark"></i> Batal</button>
+        </div>`;
+    document.body.appendChild(modal);
+}
+
+// Hasil popup: true = lanjutkan penarikan, false = batalkan
+function confirmWithdrawPopup(ok) {
+    const modal = document.getElementById('wdConfirmModal');
+    if (modal) modal.remove();
+    if (!ok || !pendingWithdraw) return;
+    const { pointsNeeded, amountStr, methodLabel, accountNo } = pendingWithdraw;
+    pendingWithdraw = null;
 
     userPoints -= pointsNeeded;
     const newReq = {
@@ -2309,7 +2344,7 @@ function renderAccount() {
                 <input type="text" id="payBank" placeholder="Nama Bank (mis. BCA, Mandiri, BRI)" maxlength="40" value="${esc(currentUser ? (currentUser.paymentBank || '') : '')}" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:white;color:#333;margin-bottom:8px;">
             </div>
             <input type="text" id="payAccount" placeholder="No. Rekening / No. HP / E-Wallet" maxlength="30" value="${esc(currentUser ? (currentUser.paymentAccount || '') : '')}" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:white;color:#333;margin-bottom:8px;">
-            <button class="btn-add" onclick="savePaymentInfo()" style="width:100%;"><i class="fas fa-floppy-disk"></i> Simpan Data Penarikan</button>
+            <button class="btn-save-payment" onclick="savePaymentInfo()"><i class="fas fa-floppy-disk"></i> Simpan Data Penarikan</button>
         </div>
 
         <div class="account-menu">

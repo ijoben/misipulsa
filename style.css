@@ -1027,6 +1027,16 @@ html.dashboard-html body { height: 100%; overflow: hidden; }
 .ur-status.rejected { background: #ffebee; color: #f44336; }
 .ur-status.waiting { background: #f3e8ff; color: #7c3aed; }
 
+/* Box tujuan penarikan di popup konfirmasi */
+.wd-confirm-dest { display: flex; align-items: center; gap: 12px; background: #f5f7ff; border: 1px dashed #c7d2fe; border-radius: 14px; padding: 14px 16px; margin: 4px 0 14px; text-align: left; }
+.wd-confirm-dest > i { font-size: 22px; color: #667eea; }
+.wd-confirm-dest .wd-confirm-method { font-size: 13px; font-weight: 700; color: #1a1a2e; }
+.wd-confirm-dest .wd-confirm-account { font-size: 15px; font-weight: 800; color: #667eea; letter-spacing: 0.5px; margin-top: 2px; word-break: break-all; }
+
+/* Tombol Simpan Data Penarikan (premium, senada tombol Upgrade Manual) */
+.btn-save-payment { width: 100%; padding: 13px; border: none; border-radius: 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-save-payment:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4); }
+
 /* Kartu pilihan paket upgrade manual + tombol Upgrade Manual */
 .pkg-picker { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
 .pkg-card { background: #fff; border: 2px solid #e5e7f0; border-radius: 12px; padding: 10px 6px; text-align: center; cursor: pointer; transition: all 0.2s ease; -webkit-tap-highlight-color: transparent; }
