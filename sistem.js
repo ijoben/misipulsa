@@ -964,7 +964,7 @@ let lastDailyDate = '';
 let youtubeWatchCount = 0;
 let adWatchCount = 0;
 
-let activePlayerTimer = null;
+let activePlayerTimer = null; // Timer tonton video/iklan (hanya berjalan saat tab terlihat)
 
 // SAMPLE DATABASE MISI
 let missions = [
@@ -1620,6 +1620,9 @@ async function addPoints(pts, title, missionId) {
 }
 
 // ==================== PLAYER MODAL TEMPLATE ====================
+// Timer tonton hanya berjalan saat tab/window TERLIHAT & FOKUS:
+// - Buka tab lain / pindah aplikasi -> countdown DIJEDA + video ikut di-pause
+// - Saat selesai -> video BERHENTI (iframe diganti penanda selesai), tombol klaim muncul
 function openPlayerModal(title, iframeUrl, seconds, onComplete) {
     let playerModal = document.getElementById('playerModal');
     if (!playerModal) {
@@ -1629,11 +1632,23 @@ function openPlayerModal(title, iframeUrl, seconds, onComplete) {
         document.body.appendChild(playerModal);
     }
 
+    // enablejsapi=1 agar iframe YouTube bisa di-pause lewat postMessage
+    let playerSrc = null;
+    if (iframeUrl) {
+        playerSrc = iframeUrl;
+        if (playerSrc.indexOf('enablejsapi=') === -1) {
+            playerSrc += (playerSrc.indexOf('?') === -1 ? '?' : '&') + 'enablejsapi=1';
+        }
+        if (playerSrc.indexOf('autoplay=') === -1) {
+            playerSrc += (playerSrc.indexOf('?') === -1 ? '?' : '&') + 'autoplay=1';
+        }
+    }
+
     playerModal.innerHTML = `
         <div class="qris-box" style="max-width: 450px;">
             <h3 style="margin-bottom:10px;">${esc(title)}</h3>
-            <div style="background:#000; border-radius:12px; height:220px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
-                ${iframeUrl ? `<iframe src="${esc(iframeUrl)}?autoplay=1" style="width:100%;height:100%;border:none;" allow="autoplay; encrypted-media"></iframe>` :
+            <div id="playerVideoWrap" style="background:#000; border-radius:12px; height:220px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                ${playerSrc ? `<iframe id="playerFrame" src="${esc(playerSrc)}" style="width:100%;height:100%;border:none;" allow="autoplay; encrypted-media"></iframe>` :
                 `<div style="text-align:center;color:white;padding:20px;">
                     <div style="font-size:44px;margin-bottom:10px;"><i class="fas fa-bullhorn"></i></div>
                     <div style="font-size:14px;">Iklan Monetag Sedang Tampil...</div>
@@ -1645,7 +1660,10 @@ function openPlayerModal(title, iframeUrl, seconds, onComplete) {
                     ⏳ Sisa Waktu Tonton: <span id="timerCountdown">${seconds}</span> Detik
                 </div>
                 <div style="width:100%;background:#e0e0e0;height:8px;border-radius:4px;overflow:hidden;">
-                    <div id="timerProgress" style="width:100%;height:100%;background:linear-gradient(90deg, #667eea, #764ba2);transition:width 1s linear;"></div>
+                    <div id="timerProgress" style="width:100%;height:100%;background:linear-gradient(90deg, #667eea, #764ba2);transition:width 0.2s linear;"></div>
+                </div>
+                <div id="playerPauseHint" style="display:none;margin-top:8px;padding:8px 10px;border-radius:8px;background:#fff3cd;color:#856404;font-size:12px;">
+                    <i class="fas fa-pause"></i> Tontonan dijeda — kembali ke tab ini untuk melanjutkan
                 </div>
             </div>
 
@@ -1660,24 +1678,73 @@ function openPlayerModal(title, iframeUrl, seconds, onComplete) {
 
     playerModal.classList.add('show');
 
-    let currentSec = seconds;
     const timerDisplay = document.getElementById('timerCountdown');
     const progressBar = document.getElementById('timerProgress');
     const claimBtn = document.getElementById('claimRewardBtn');
+    const videoWrap = document.getElementById('playerVideoWrap');
+    const pauseHint = document.getElementById('playerPauseHint');
 
     if (activePlayerTimer) clearInterval(activePlayerTimer);
 
+    let currentSec = seconds;
+    let lastTick = Date.now();
+    let paused = document.hidden; // mulai berjalan (tab terbuka)
+
+    function setPlayerPaused(p) {
+        paused = p;
+        lastTick = Date.now();
+        if (pauseHint) pauseHint.style.display = p ? 'block' : 'none';
+        // Jeda/lanjutkan video YouTube di iframe
+        const frame = document.getElementById('playerFrame');
+        if (frame && frame.contentWindow) {
+            try {
+                frame.contentWindow.postMessage(JSON.stringify({
+                    event: 'command',
+                    func: p ? 'pauseVideo' : 'playVideo',
+                    args: ''
+                }), '*');
+            } catch (e) { /* abaikan */ }
+        }
+    }
+
+    function onVisChange() { setPlayerPaused(document.hidden); }
+    function onBlur() { setPlayerPaused(true); }
+    function onFocus() { setPlayerPaused(false); }
+
+    document.addEventListener('visibilitychange', onVisChange);
+    window.addEventListener('blur', onBlur);
+    window.addEventListener('focus', onFocus);
+    window._playerCleanup = function () {
+        document.removeEventListener('visibilitychange', onVisChange);
+        window.removeEventListener('blur', onBlur);
+        window.removeEventListener('focus', onFocus);
+    };
+
     activePlayerTimer = setInterval(() => {
-        currentSec--;
-        if (timerDisplay) timerDisplay.textContent = currentSec;
+        const now = Date.now();
+        // Hanya kurangi waktu yang benar-benar terlihat (tidak saat tab disembunyikan)
+        if (!paused) currentSec -= (now - lastTick) / 1000;
+        lastTick = now;
+        if (currentSec < 0) currentSec = 0;
+        if (timerDisplay) timerDisplay.textContent = Math.ceil(currentSec);
         if (progressBar) progressBar.style.width = `${(currentSec / seconds) * 100}%`;
 
         if (currentSec <= 0) {
             clearInterval(activePlayerTimer);
+            activePlayerTimer = null;
+            // HENTIKAN video: ganti area pemutar dengan penanda selesai
+            if (videoWrap) {
+                videoWrap.innerHTML = `
+                    <div style="text-align:center;color:white;padding:20px;">
+                        <div style="font-size:44px;margin-bottom:10px;"><i class="fas fa-circle-check" style="color:#4caf50;"></i></div>
+                        <div style="font-size:14px;">Misi Selesai — poin siap diklaim</div>
+                    </div>`;
+            }
+            if (pauseHint) pauseHint.style.display = 'none';
             if (claimBtn) claimBtn.style.display = 'block';
             showToast('✅ Misi selesai! Klik Klaim Poin.', 'success');
         }
-    }, 1000);
+    }, 200);
 
     window._currentPlayerCallback = onComplete;
 }
@@ -1693,7 +1760,11 @@ function finishPlayerReward() {
 function closePlayerModal() {
     const modal = document.getElementById('playerModal');
     if (modal) modal.classList.remove('show');
-    if (activePlayerTimer) clearInterval(activePlayerTimer);
+    if (activePlayerTimer) { clearInterval(activePlayerTimer); activePlayerTimer = null; }
+    if (typeof window._playerCleanup === 'function') {
+        try { window._playerCleanup(); } catch (e) { /* abaikan */ }
+        window._playerCleanup = null;
+    }
 }
 
 // ==================== WITHDRAW ENGINE ====================
