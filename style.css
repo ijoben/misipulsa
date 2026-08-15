@@ -995,6 +995,8 @@ html.dashboard-html body { height: 100%; overflow: hidden; }
 .admin-section .btn-add:hover { background: #45a049; }
 .admin-section .btn-edit { background: #2196f3; color: white; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; }
 .admin-section .btn-edit:hover { background: #1976d2; }
+.admin-section .btn-credit { background: linear-gradient(135deg, #4caf50, #2e7d32); color: white; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; }
+.admin-section .btn-credit:hover { filter: brightness(1.1); }
 .admin-section .btn-delete-mission { background: #f44336; color: white; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; }
 .admin-section .btn-delete-mission:hover { background: #d32f2f; }
 .admin-section .btn-approve-upgrade { background: #4caf50; color: white; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; }

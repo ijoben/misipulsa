@@ -2666,7 +2666,7 @@ function renderAdminPanel() {
                     <input type="text" id="adminUserPhone" placeholder="No. HP / WhatsApp" maxlength="20">
                 </div>
                 <div class="form-row">
-                    <input type="number" id="adminUserPoints" placeholder="Poin (default 100)" min="0">
+                    <input type="number" id="adminUserPoints" placeholder="${adminEditingUserId ? 'Total Poin (kosong = tidak diubah)' : 'Poin (default 100)'}" min="0">
                     <select id="adminUserLevel">
                         <option value="Free">Free</option>
                         <option value="YouTube VIP">YouTube VIP</option>
@@ -2692,6 +2692,7 @@ function renderAdminPanel() {
                         <div class="u-points">${Number(u.points || 0).toLocaleString()} pts</div>
                         <div style="display:flex;gap:4px;">
                             <button class="btn-edit" onclick="loginAsUser('${esc(u.id)}')" title="Lihat dashboard user"><i class="fas fa-eye"></i></button>
+                            <button class="btn-credit" onclick="creditUserPoints('${esc(u.id)}')" title="Tambah poin ke user ini"><i class="fas fa-plus"></i> Poin</button>
                             <button class="btn-edit" onclick="editUserAdmin('${esc(u.id)}')"><i class="fas fa-pen"></i></button>
                             <button class="btn-delete-mission" onclick="deleteUserAdmin('${esc(u.id)}')"><i class="fas fa-trash-can"></i></button>
                         </div>
@@ -2984,7 +2985,11 @@ async function saveUserAdmin() {
     const name = (document.getElementById('adminUserName')?.value || '').trim();
     const phone = (document.getElementById('adminUserPhone')?.value || '').trim();
     const ptsRaw = parseInt(document.getElementById('adminUserPoints')?.value, 10);
-    const pts = Number.isFinite(ptsRaw) && ptsRaw >= 0 ? ptsRaw : 0;
+    // Saat EDIT: kolom poin kosong = jangan ubah total poin (hindari ke-reset ke 0).
+    const ptsField = (document.getElementById('adminUserPoints')?.value || '').trim();
+    const pts = ptsField === '' && adminEditingUserId
+        ? null
+        : (Number.isFinite(ptsRaw) && ptsRaw >= 0 ? ptsRaw : 0);
     const level = document.getElementById('adminUserLevel')?.value || 'Free';
     const isAdmin = document.getElementById('adminUserIsAdmin')?.checked || false;
     const ref = (document.getElementById('adminUserReferral')?.value || '').trim();
@@ -3033,7 +3038,7 @@ async function saveUserAdmin() {
         // Mode demo
         if (adminEditingUserId) {
             adminUsers = adminUsers.map(u => (String(u.id) === String(adminEditingUserId)
-                ? { ...u, full_name: name, phone, points: pts, level, is_admin: isAdmin, referral_code: ref }
+                ? { ...u, full_name: name, phone, points: pts === null ? u.points : pts, level, is_admin: isAdmin, referral_code: ref }
                 : u));
         } else {
             adminUsers.unshift({
@@ -3053,6 +3058,44 @@ async function saveUserAdmin() {
     adminEditingUserId = null;
     adminShowUserForm = false;
     showToast('✅ User disimpan!', 'success');
+    renderAdminPanel();
+}
+
+// Tambah poin ke user (INCREMENT, bukan ganti total). Supabase: RPC admin_credit_points.
+async function creditUserPoints(id) {
+    if (!currentUser || !currentUser.isAdmin) {
+        showToast('⛔ Akses ditolak: Anda bukan admin.', 'error');
+        return;
+    }
+    const u = adminUsers.find(x => String(x.id) === String(id));
+    if (!u) return;
+    const raw = prompt(`Tambah poin untuk ${u.full_name || u.name || 'user'} (saat ini ${Number(u.points || 0).toLocaleString()} pts):`, '100');
+    if (raw === null) return;
+    const add = parseInt(raw, 10);
+    if (!Number.isFinite(add) || add <= 0) {
+        showToast('Jumlah poin harus angka lebih dari 0.', 'warning');
+        return;
+    }
+    if (supabaseClient) {
+        const { data, error } = await supabaseClient.rpc('admin_credit_points', { p_user_id: id, p_points: add });
+        if (error) {
+            const msg = String(error.message || '');
+            if (/function|does not exist|not found/i.test(msg)) {
+                showToast('⚠️ RPC admin_credit_points belum ada — jalankan ulang supabase-setup.sql.', 'error');
+            } else {
+                showToast(`⚠️ ${error.message}`, 'error');
+            }
+            return;
+        }
+        await loadAdminUsersFromServer();
+        showToast(`💰 +${add.toLocaleString()} poin → total ${Number(data).toLocaleString()} pts.`, 'success');
+    } else {
+        adminUsers = adminUsers.map(x => (String(x.id) === String(id)
+            ? { ...x, points: (Number(x.points) || 0) + add }
+            : x));
+        saveData();
+        showToast(`💰 +${add.toLocaleString()} poin ditambahkan (mode demo).`, 'success');
+    }
     renderAdminPanel();
 }
 
