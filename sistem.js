@@ -59,7 +59,10 @@ function initSupabase() {
 // (TIDAK ada fallback login simulasi yang diam-diam).
 function requireSupabase() {
     if (!initSupabase()) {
-        showToast('⚠️ Layanan belum dikonfigurasi. Silakan hubungi admin.', 'error');
+        const cfgMissing = !MISIPULSA_CONFIG.supabaseUrl || !MISIPULSA_CONFIG.supabaseAnonKey;
+        showToast(cfgMissing
+            ? '⚠️ Kredensial belum terpasang. Unggah config.js (hasil node generate-config.js) ke folder aplikasi.'
+            : '⚠️ Layanan belum dikonfigurasi. Silakan hubungi admin.', 'error');
         return false;
     }
     return true;
