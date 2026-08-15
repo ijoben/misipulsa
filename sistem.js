@@ -2903,21 +2903,47 @@ function switchAdminTxTab(tabName) {
     });
 }
 
-// Setujui/Tolak deposit — di Supabase pakai tabel `deposits`, di demo pakai state lokal.
+// Setujui deposit — di Supabase pakai tabel `deposits`, di demo pakai state lokal.
+// Kalau deposit membawa nilai poin (deposit manual poin/isi saldo), poin otomatis
+// dikredit ke user via RPC admin_credit_points (aman dari kredit ganda).
 async function approveUpgradeAdmin(id) {
     if (!currentUser || !currentUser.isAdmin) return;
     if (supabaseClient) {
+        // Baca dulu status & nilai poin deposit (cegah kredit ganda bila sudah approved).
+        // Flag dievaluasi SEBELUM update: di mock/store objek bisa saling alias (update
+        // mengubah objek yang sama), di Supabase asli pun ini lebih aman.
+        const { data: dep } = await supabaseClient.from('deposits').select('user_id, points, status').eq('id', id).single();
+        const canCredit = dep && dep.status !== 'approved' && Number(dep.points || 0) > 0 && dep.user_id;
+        const creditPoints = canCredit ? Number(dep.points) : 0;
         const { error } = await supabaseClient.from('deposits').update({ status: 'approved' }).eq('id', id);
         if (error) {
             showToast(`⚠️ Gagal menyetujui: ${error.message}`, 'error');
             return;
         }
+        if (canCredit) {
+            const credit = await supabaseClient.rpc('admin_credit_points', { p_user_id: dep.user_id, p_points: creditPoints });
+            if (credit.error) {
+                showToast(`⚠️ Deposit disetujui, tapi poin gagal dikredit: ${credit.error.message}`, 'warning');
+            } else {
+                showToast(`💰 Deposit disetujui — +${creditPoints.toLocaleString()} poin dikredit ke user.`, 'success');
+            }
+        } else {
+            showToast('✅ Deposit disetujui!', 'success');
+        }
         await loadAdminDataFromServer();
     } else {
+        const dep = upgradeRequests.find(r => r.id === id);
+        const canCredit = dep && dep.status !== 'approved' && Number(dep.points || 0) > 0;
         upgradeRequests = upgradeRequests.map(r => (r.id === id ? { ...r, status: 'approved' } : r));
+        if (canCredit) {
+            userPoints = (userPoints || 0) + Number(dep.points || 0);
+            if (currentUser) currentUser.totalEarned = userPoints;
+            showToast(`💰 Deposit disetujui — +${Number(dep.points).toLocaleString()} poin dikredit (demo).`, 'success');
+        } else {
+            showToast('✅ Deposit disetujui!', 'success');
+        }
         saveData();
     }
-    showToast('✅ Deposit disetujui!', 'success');
     renderAdminPanel();
 }
 
