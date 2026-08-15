@@ -947,7 +947,13 @@ function quickLoginModal() {
 let currentUser = null;
 let userPoints = 0;
 let isLoggedIn = false;
-let currentTab = 'missions';
+// Tab dashboard yang aktif — dipersist agar tetap di halaman yang sama setelah refresh
+let currentTab = (function () {
+    try {
+        const t = localStorage.getItem('mp_currentTab');
+        return ['missions', 'withdraw', 'upgrade', 'referral', 'account'].includes(t) ? t : 'missions';
+    } catch (e) { return 'missions'; }
+})();
 
 // LIMIT & UPGRADES
 const FREE_LIMIT = 5;
@@ -1221,7 +1227,7 @@ function renderApp() {
         <!-- MAIN CONTENT -->
         <div class="main-content" id="mainContent">
 
-            <div class="tab-content active" id="tab-missions">
+            <div class="tab-content ${currentTab === 'missions' ? 'active' : ''}" id="tab-missions">
                 <!-- KARTU POIN: bagian dari konten Beranda — ikut scroll, tidak lengket -->
                 <div id="pointsCardWrapper">
                     <div class="points-card">
@@ -1244,7 +1250,7 @@ function renderApp() {
                 <div id="missionsList"></div>
             </div>
 
-            <div class="tab-content" id="tab-withdraw">
+            <div class="tab-content ${currentTab === 'withdraw' ? 'active' : ''}" id="tab-withdraw">
                 <div class="page-title"><i class="fas fa-money-bill-transfer"></i> Tarik Poin</div>
                 <p style="color:#888;font-size:13px;margin-bottom:12px;">
                     Minimal penarikan <strong>10.000 poin = Rp 10.000</strong>
@@ -1254,17 +1260,17 @@ function renderApp() {
                 <div id="withdrawHistory"></div>
             </div>
 
-            <div class="tab-content" id="tab-upgrade">
+            <div class="tab-content ${currentTab === 'upgrade' ? 'active' : ''}" id="tab-upgrade">
                 <div class="page-title"><i class="fas fa-crown"></i> Upgrade Account</div>
                 <div id="upgradeList"></div>
             </div>
 
-            <div class="tab-content" id="tab-referral">
+            <div class="tab-content ${currentTab === 'referral' ? 'active' : ''}" id="tab-referral">
                 <div class="page-title"><i class="fas fa-users"></i> Program Referral</div>
                 <div id="referralContent"></div>
             </div>
 
-            <div class="tab-content" id="tab-account">
+            <div class="tab-content ${currentTab === 'account' ? 'active' : ''}" id="tab-account">
                 <div class="page-title"><i class="fas fa-user"></i> Akun Saya</div>
                 <div id="accountContent"></div>
             </div>
@@ -1277,19 +1283,19 @@ function renderApp() {
 
         <!-- BOTTOM NAV -->
         <div class="bottom-nav">
-            <div class="nav-item active" data-tab="missions" onclick="switchTab('missions')">
+            <div class="nav-item ${currentTab === 'missions' ? 'active' : ''}" data-tab="missions" onclick="switchTab('missions')">
                 <i class="fas fa-home"></i><span>Beranda</span>
             </div>
-            <div class="nav-item" data-tab="withdraw" onclick="switchTab('withdraw')">
+            <div class="nav-item ${currentTab === 'withdraw' ? 'active' : ''}" data-tab="withdraw" onclick="switchTab('withdraw')">
                 <i class="fas fa-wallet"></i><span>Tarik</span>
             </div>
-            <div class="nav-item" data-tab="upgrade" onclick="switchTab('upgrade')">
+            <div class="nav-item ${currentTab === 'upgrade' ? 'active' : ''}" data-tab="upgrade" onclick="switchTab('upgrade')">
                 <i class="fas fa-star"></i><span>Upgrade</span>
             </div>
-            <div class="nav-item" data-tab="referral" onclick="switchTab('referral')">
+            <div class="nav-item ${currentTab === 'referral' ? 'active' : ''}" data-tab="referral" onclick="switchTab('referral')">
                 <i class="fas fa-users"></i><span>Referral</span>
             </div>
-            <div class="nav-item" data-tab="account" onclick="switchTab('account')">
+            <div class="nav-item ${currentTab === 'account' ? 'active' : ''}" data-tab="account" onclick="switchTab('account')">
                 <i class="fas fa-user"></i><span>Akun</span>
             </div>
         </div>
@@ -1300,6 +1306,7 @@ function renderApp() {
 
 function switchTab(tabName) {
     currentTab = tabName;
+    try { localStorage.setItem('mp_currentTab', tabName); } catch (e) { /* abaikan */ }
     const tabs = document.querySelectorAll('.tab-content');
     tabs.forEach(t => t.classList.remove('active'));
 
