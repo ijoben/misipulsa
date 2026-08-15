@@ -63,7 +63,7 @@
     <!-- Font Awesome dimuat async (tidak memblokir render) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" media="print" onload="this.media=&#39;all&#39;"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"></noscript>
     <link rel="stylesheet" href="style.css">
 
     <!-- Ubah URL OG/canonical relatif menjadi absolut sesuai domain saat ini -->
@@ -148,23 +148,28 @@
         </div>
     </main>
 
-    <!-- SUPABASE JS SDK (defer: tidak memblokir render) -->
-    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.min.js" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
-        <script defer src="config.js"></script>
-<script defer src="sistem.js"></script>
+    <!-- Landing ringan: TANPA Supabase SDK / config / sistem.js (~150KB JS dihemat).
+         Cek status login cukup dari localStorage (mp_currentUser di-set saat login/logout). -->
+    <link rel="prefetch" href="/dashboard">
     <script>
-        // Tombol atas menyesuaikan status login:
-        // sudah login -> tombol "Dashboard", belum login -> tombol "Masuk".
         function syncTopNav() {
             const dash = document.getElementById('navDashboardBtn');
             const masuk = document.getElementById('navLoginBtn');
             if (!dash || !masuk) return;
-            const loggedIn = !!(typeof currentUser !== 'undefined' && currentUser);
+            let loggedIn = false;
+            try {
+                const u = JSON.parse(localStorage.getItem('mp_currentUser') || 'null');
+                loggedIn = !!(u && u.id && u.name);
+            } catch (e) { /* abaikan */ }
             dash.style.display = loggedIn ? '' : 'none';
             masuk.style.display = loggedIn ? 'none' : '';
         }
         window.misipulsaSessionReady = syncTopNav;
-        document.addEventListener('DOMContentLoaded', syncTopNav);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', syncTopNav);
+        } else {
+            syncTopNav();
+        }
     </script>
 </body>
 </html>
