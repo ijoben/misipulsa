@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# GANTI domain di bawah dengan domain produksi Anda
+Sitemap: https://misipulsa.vercel.app/sitemap.xml

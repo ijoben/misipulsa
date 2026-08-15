@@ -3,10 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MisiPulsa - Dapatkan Pulsa Gratis!</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
+
+    <!-- SEO -->
+    <title>MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video & Iklan</title>
+    <meta name="description" content="Kumpulkan poin gratis dengan nonton video YouTube dan iklan, daily login, serta ajak teman. Tukarkan poinmu jadi pulsa. Daftar sekarang, bonus 100 poin!">
+    <meta name="keywords" content="pulsa gratis, misi pulsa, dapat pulsa, nonton video dapat pulsa, poin gratis, isi pulsa gratis">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="MisiPulsa">
+    <meta name="theme-color" content="#667eea">
+    <link rel="canonical" href="/">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <link rel="apple-touch-icon" href="/logo.svg">
+
+    <!-- Open Graph (Facebook / WhatsApp / Telegram / LINE) -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="MisiPulsa">
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:title" content="MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video & Iklan">
+    <meta property="og:description" content="Kumpulkan poin gratis: nonton YouTube, iklan, daily login, dan ajak teman. Tukarkan jadi pulsa. Bonus 100 poin untuk pendaftar baru!">
+    <meta property="og:url" content="/">
+    <meta property="og:image" content="/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="MisiPulsa — Dapatkan Pulsa Gratis">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video & Iklan">
+    <meta name="twitter:description" content="Kumpulkan poin gratis: nonton YouTube, iklan, daily login, dan ajak teman. Tukarkan jadi pulsa. Bonus 100 poin!">
+    <meta name="twitter:image" content="/og-image.png">
+
+    <!-- Struktur data untuk mesin pencari -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "MisiPulsa",
+        "description": "Dapatkan pulsa gratis dengan kumpulkan poin dari nonton video & iklan.",
+        "url": "/",
+        "inLanguage": "id-ID",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+
+    <!-- Percepatan: preconnect ke CDN & font -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+    <!-- Font Awesome dimuat async (tidak memblokir render) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+
+    <!-- Ubah URL OG/canonical relatif menjadi absolut sesuai domain saat ini -->
+    <script>
+        (function () {
+            // Hanya properti berjenis URL yang diabsolutkan (bukan title/description)
+            var abs = function (sel, attr) {
+                var els = document.querySelectorAll(sel);
+                for (var i = 0; i < els.length; i++) {
+                    var v = els[i].getAttribute(attr);
+                    if (v && v.indexOf('http') !== 0) els[i].setAttribute(attr, window.location.origin + v);
+                }
+            };
+            abs('link[rel="canonical"]', 'href');
+            abs('meta[property="og:url"]', 'content');
+            abs('meta[property="og:image"]', 'content');
+            abs('meta[property="og:image:secure_url"]', 'content');
+            abs('meta[name="twitter:image"]', 'content');
+        })();
+    </script>
 </head>
 <body>
     
@@ -71,10 +148,10 @@
         </div>
     </div>
 
-    <!-- SUPABASE JS SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.min.js" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
-        <script src="config.js"></script>
-<script src="sistem.js"></script>
+    <!-- SUPABASE JS SDK (defer: tidak memblokir render) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.min.js" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
+        <script defer src="config.js"></script>
+<script defer src="sistem.js"></script>
     <script>
         // Tombol atas menyesuaikan status login:
         // sudah login -> tombol "Dashboard", belum login -> tombol "Masuk".
