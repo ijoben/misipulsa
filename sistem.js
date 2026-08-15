@@ -1856,7 +1856,7 @@ function renderDepositRow(d) {
                 <span class="ur-amount">${amount}${code ? ` <small style="font-size:10px;color:#888;">kode ${code}</small>` : ''}</span>
                 ${badge}
             </div>
-            <div style="font-size:11px;color:#999;margin-top:4px;">${esc(d.method || '')} • ${dateTxt}</div>
+            <div style="font-size:11px;color:#999;margin-top:4px;">${st === 'waiting' ? dateTxt : `${esc(d.method || '')} • ${dateTxt}`}</div>
             ${actions}
         </div>`;
 }
