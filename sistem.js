@@ -1414,7 +1414,8 @@ function renderMissions() {
                 </div>
             </div>
         </div>
-    `}).join('');
+    `}).join('') + `
+    <div class="missions-end"><span>${missions.length ? 'Sudah semua misi hari ini' : 'Belum ada misi'}</span></div>`;
 }
 
 function getIconFa(type) {
