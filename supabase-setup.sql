@@ -62,6 +62,9 @@ CREATE TABLE IF NOT EXISTS public.withdrawals (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
+-- Kolom tujuan penarikan (no. rekening / HP / e-wallet) agar admin bisa memproses
+ALTER TABLE public.withdrawals ADD COLUMN IF NOT EXISTS account_dest TEXT;
+
 -- 4. TABEL USER_MISSIONS (Misi yang Sudah Diklaim User)
 CREATE TABLE IF NOT EXISTS public.user_missions (
     id BIGSERIAL PRIMARY KEY,
@@ -265,9 +268,14 @@ CREATE POLICY "Users can view own profile" ON public.profiles
 CREATE POLICY "Users can update own profile" ON public.profiles
     FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 
+-- Kolom data penarikan member (metode, norek/HP, nama bank) — diisi di tab Akun
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS payment_method TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS payment_account TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS payment_bank TEXT;
+
 -- Cabut hak update umum, lalu beri hanya kolom aman (profil pengguna).
 REVOKE UPDATE ON public.profiles FROM anon, authenticated;
-GRANT UPDATE (phone, full_name, streak) ON public.profiles TO authenticated;
+GRANT UPDATE (phone, full_name, streak, payment_method, payment_account, payment_bank) ON public.profiles TO authenticated;
 
 -- ==========================================================================
 -- POLICIES MISSIONS
@@ -388,6 +396,7 @@ CREATE POLICY "Admins can manage deposits" ON public.deposits
 
 -- Member mengirim bukti transfer untuk deposit miliknya yang masih 'waiting'.
 -- SECURITY DEFINER + guard status, jadi user TIDAK bisa ubah statusnya sendiri.
+-- Status TETAP 'waiting' — admin melihat bukti & memproses lewat tombol Setujui/Tolak.
 CREATE OR REPLACE FUNCTION public.submit_deposit_proof(p_deposit_id TEXT, p_proof TEXT)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
@@ -401,8 +410,8 @@ BEGIN
         RAISE EXCEPTION 'Deposit tidak ditemukan';
     END IF;
     UPDATE public.deposits
-       SET proof_image = p_proof, status = 'pending'
-     WHERE id = p_deposit_id AND status = 'waiting';
+       SET proof_image = p_proof
+     WHERE id = p_deposit_id AND status IN ('waiting', 'pending');
     RETURN FOUND;
 END;
 $$;

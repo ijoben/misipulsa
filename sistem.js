@@ -208,7 +208,10 @@ async function fetchUserProfileSupabase(userId, email) {
                 streak: data.streak || 1,
                 referralCode: data.referral_code || generateReferralCode(),
                 isAdmin: data.is_admin === true,  // HANYA dari database, tidak pernah dari localStorage
-                bonusClaimed: data.bonus_claimed === true
+                bonusClaimed: data.bonus_claimed === true,
+                paymentMethod: data.payment_method || '',
+                paymentAccount: data.payment_account || '',
+                paymentBank: data.payment_bank || ''
             };
             userPoints = data.points || 100;
             saveData();
@@ -357,7 +360,8 @@ function mapServerWithdrawal(w) {
         date: w.created_at ? new Date(w.created_at).toLocaleDateString() : '',
         status: w.status || 'pending',
         method: w.method || '',
-        user_name: w.user_name || ''
+        user_name: w.user_name || '',
+        account_dest: w.account_dest || ''
     };
 }
 
@@ -1646,7 +1650,15 @@ function renderWithdrawOptions() {
         { amount: 'Rp 100.000', points: 100000 }
     ];
 
-    container.innerHTML = options.map(opt => `
+    const payMethod = (currentUser && currentUser.paymentMethod) || '';
+    const payAccount = ((currentUser && currentUser.paymentAccount) || '').trim();
+    const payBank = ((currentUser && currentUser.paymentBank) || '').trim();
+    const destLabel = payMethod === 'Transfer Bank' && payBank ? `Transfer Bank ${payBank}` : payMethod;
+    const destInfo = payAccount
+        ? `<p style="font-size:12px;color:#4caf50;margin-bottom:10px;"><i class="fas fa-circle-check"></i> Dana dikirim ke <strong>${esc(destLabel)} (${esc(payAccount)})</strong> — ubah di tab Akun.</p>`
+        : `<p style="font-size:12px;color:#ff9800;margin-bottom:10px;"><i class="fas fa-circle-exclamation"></i> Lengkapi <strong>Data Penarikan</strong> di tab Akun sebelum tarik poin.</p>`;
+
+    container.innerHTML = destInfo + options.map(opt => `
         <div class="withdraw-btn" onclick="requestWithdraw(${esc(opt.points)}, '${esc(opt.amount)}')">
             <div class="amount">${esc(opt.amount)}</div>
             <div class="points">${esc(opt.points.toLocaleString())} Poin</div>
@@ -1664,14 +1676,20 @@ function requestWithdraw(pointsNeeded, amountStr) {
         return;
     }
 
-    const method = prompt('Pilih Metode Penarikan (DANA / OVO / GoPay / ShopeePay / Pulsa):', 'DANA');
-    if (!method || !method.trim()) return;
-    const accountNo = prompt(`Masukkan Nomor HP / E-Wallet ${method}:`, currentUser ? currentUser.phone : '08123456789');
-    if (!accountNo || !accountNo.trim()) return;
-    if (accountNo.length > 50) {
-        showToast('Nomor tujuan terlalu panjang, coba lagi.', 'error');
+    // Tujuan penarikan diambil dari Data Penarikan di profil (tab Akun)
+    const method = (currentUser && currentUser.paymentMethod) || '';
+    const accountNo = ((currentUser && currentUser.paymentAccount) || '').trim();
+    if (!method || !accountNo) {
+        showToast('Isi dulu Data Penarikan (no. rekening / HP / e-wallet) di tab Akun.', 'warning');
+        switchTab('account');
         return;
     }
+    if (accountNo.length > 50) {
+        showToast('Nomor tujuan terlalu panjang, coba perbarui di tab Akun.', 'error');
+        return;
+    }
+    const bankName = (currentUser && currentUser.paymentBank || '').trim();
+    const methodLabel = method === 'Transfer Bank' && bankName ? `Transfer Bank ${bankName}` : method;
 
     userPoints -= pointsNeeded;
     const newReq = {
@@ -1680,23 +1698,26 @@ function requestWithdraw(pointsNeeded, amountStr) {
         points: pointsNeeded,
         date: new Date().toLocaleDateString(),
         status: 'pending',
-        method: `${method} (${accountNo})`
+        method: methodLabel,
+        account_dest: accountNo
     };
 
     withdrawHistory.unshift(newReq);
     withdrawRequests.unshift(newReq);
 
     // Simpan permintaan penarikan ke tabel `withdrawals` di Supabase
-    // (policy insert: milik sendiri) agar terlihat oleh admin.
+    // (policy insert: milik sendiri) agar terlihat oleh admin beserta tujuannya.
     if (supabaseClient && currentUser && currentUser.id) {
         supabaseClient
             .from('withdrawals')
             .insert({
                 id: newReq.id,
                 user_id: currentUser.id,
+                user_name: currentUser.name || 'Member',
                 amount: amountStr,
                 points: pointsNeeded,
-                method: `${method} (${accountNo})`,
+                method: methodLabel,
+                account_dest: accountNo,
                 status: 'pending'
             })
             .then(({ error }) => {
@@ -1705,7 +1726,7 @@ function requestWithdraw(pointsNeeded, amountStr) {
             .catch((e) => console.warn('Withdraw insert failed:', e));
     }
 
-    addPoints(0, `Penarikan ${amountStr} (${method})`);
+    addPoints(0, `Penarikan ${amountStr} (${methodLabel})`);
     showToast(`✅ Permintaan penarikan ${amountStr} berhasil dikirim! Mohon tunggu konfirmasi admin.`, 'success');
     updateUI();
 }
@@ -1722,7 +1743,7 @@ function renderWithdrawHistory() {
     container.innerHTML = withdrawHistory.map(w => `
         <div class="history-item">
             <div class="history-left">
-                <div class="title">${esc(w.amount)} — ${esc(w.method)}</div>
+                <div class="title">${esc(w.amount)} — ${esc(w.method)}${w.account_dest ? ` (${esc(w.account_dest)})` : ''}</div>
                 <div class="date">${esc(w.date)} • ID: ${esc(w.id)}</div>
             </div>
             <span class="status-badge ${esc(w.status)}">${esc(String(w.status || '').toUpperCase())}</span>
@@ -1821,6 +1842,11 @@ function renderDepositRow(d) {
     let actions = '';
 
     if (st === 'waiting') {
+        if (d.proof_image) {
+            // Bukti sudah dikirim — tetap status waiting, admin bisa lihat bukti & proses
+            badge = '<span class="ur-status waiting">Menunggu Verifikasi</span>';
+            actions = `<div class="proof-status"><i class="fas fa-file-image"></i> Bukti terkirim — menunggu verifikasi admin</div>`;
+        } else {
         badge = '<span class="ur-status waiting">Menunggu Pembayaran</span>';
         actions = `
             <div class="ur-actions">
@@ -1838,6 +1864,7 @@ function renderDepositRow(d) {
             </div>
             <div class="proof-status" id="proofStatus-${esc(d.id)}"></div>
         `;
+        }
     } else if (st === 'pending') {
         badge = '<span class="ur-status pending">Menunggu Verifikasi</span>';
         actions = `<div class="proof-status"><i class="fas fa-file-image"></i> Bukti terkirim — menunggu verifikasi admin</div>`;
@@ -2001,13 +2028,13 @@ async function sendDepositProof(id) {
                 return;
             }
             const dep = myDeposits.find(x => String(x.id) === String(id));
-            if (dep) { dep.status = 'pending'; dep.proof_image = proof; }
+            if (dep) { dep.proof_image = proof; } // status tetap 'waiting' — admin lihat bukti & proses
         } catch (e) {
             showToast(`Gagal mengirim bukti: ${e.message}`, 'error');
             return;
         }
     } else {
-        upgradeRequests = upgradeRequests.map(r => (String(r.id) === String(id) ? { ...r, status: 'pending', proof_image: proof } : r));
+        upgradeRequests = upgradeRequests.map(r => (String(r.id) === String(id) ? { ...r, proof_image: proof } : r));
         saveData();
     }
     delete pendingProofFiles[id];
@@ -2241,6 +2268,9 @@ function copyReferralLink(link) {
 function renderAccount() {
     const container = document.getElementById('accountContent');
     if (!container) return;
+    // Metode penarikan default: Transfer Bank (kolom bank tampil)
+    const payMethodInit = (currentUser && currentUser.paymentMethod) || 'Transfer Bank';
+    const isBankInit = payMethodInit === 'Transfer Bank';
 
     container.innerHTML = `
         <div class="account-info">
@@ -2264,6 +2294,24 @@ function renderAccount() {
             </div>
         </div>
 
+        <div class="account-info">
+            <h4 style="margin:0 0 8px;"><i class="fas fa-wallet"></i> Data Penarikan</h4>
+            <p style="font-size:11px;color:#888;margin-bottom:10px;">No. rekening / HP / e-wallet tujuan penarikan. Dipakai otomatis saat klik Tarik Poin.</p>
+            <select id="payMethod" onchange="togglePayBank()" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:white;color:#333;margin-bottom:8px;">
+                <option value="Transfer Bank" ${isBankInit ? 'selected' : ''}>Transfer Bank</option>
+                <option value="Pulsa" ${payMethodInit === 'Pulsa' ? 'selected' : ''}>Pulsa (Telkomsel / XL / dll)</option>
+                <option value="DANA" ${payMethodInit === 'DANA' ? 'selected' : ''}>DANA</option>
+                <option value="OVO" ${payMethodInit === 'OVO' ? 'selected' : ''}>OVO</option>
+                <option value="GoPay" ${payMethodInit === 'GoPay' ? 'selected' : ''}>GoPay</option>
+                <option value="ShopeePay" ${payMethodInit === 'ShopeePay' ? 'selected' : ''}>ShopeePay</option>
+            </select>
+            <div id="payBankRow" style="${isBankInit ? '' : 'display:none;'}">
+                <input type="text" id="payBank" placeholder="Nama Bank (mis. BCA, Mandiri, BRI)" maxlength="40" value="${esc(currentUser ? (currentUser.paymentBank || '') : '')}" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:white;color:#333;margin-bottom:8px;">
+            </div>
+            <input type="text" id="payAccount" placeholder="No. Rekening / No. HP / E-Wallet" maxlength="30" value="${esc(currentUser ? (currentUser.paymentAccount || '') : '')}" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:white;color:#333;margin-bottom:8px;">
+            <button class="btn-add" onclick="savePaymentInfo()" style="width:100%;"><i class="fas fa-floppy-disk"></i> Simpan Data Penarikan</button>
+        </div>
+
         <div class="account-menu">
             ${currentUser && currentUser.isAdmin ? `
             <a href="admin.html" class="menu-item" style="text-decoration:none;color:inherit;">
@@ -2283,6 +2331,55 @@ function renderAccount() {
             </div>
         </div>
     `;
+}
+
+// Tampilkan/sembunyikan kolom nama bank sesuai metode penarikan
+function togglePayBank() {
+    const method = document.getElementById('payMethod')?.value;
+    const row = document.getElementById('payBankRow');
+    if (row) row.style.display = method === 'Transfer Bank' ? '' : 'none';
+}
+
+// Simpan data penarikan member (metode + norek/HP) ke profil
+async function savePaymentInfo() {
+    if (impersonationBlocked()) return;
+    if (!currentUser) {
+        showToast('Silakan login terlebih dahulu.', 'warning');
+        return;
+    }
+    const method = document.getElementById('payMethod')?.value || '';
+    const account = (document.getElementById('payAccount')?.value || '').trim();
+    const bank = (document.getElementById('payBank')?.value || '').trim();
+    if (!account) {
+        showToast('Isi nomor rekening / HP / e-wallet terlebih dahulu.', 'warning');
+        return;
+    }
+    if (method === 'Transfer Bank' && !bank) {
+        showToast('Isi nama bank (mis. BCA) untuk metode Transfer Bank.', 'warning');
+        return;
+    }
+    currentUser.paymentMethod = method;
+    currentUser.paymentAccount = account;
+    currentUser.paymentBank = bank;
+    if (supabaseClient && currentUser.id) {
+        try {
+            const { error } = await supabaseClient.from('profiles').update({
+                payment_method: method,
+                payment_account: account,
+                payment_bank: bank
+            }).eq('id', currentUser.id);
+            if (error) {
+                showToast(`Gagal menyimpan: ${error.message}`, 'error');
+                return;
+            }
+        } catch (e) {
+            showToast(`Gagal menyimpan: ${e.message}`, 'error');
+            return;
+        }
+    }
+    saveData();
+    showToast('Data penarikan tersimpan!', 'success');
+    renderAccount();
 }
 
 function renderHistory() {
@@ -2385,9 +2482,12 @@ function renderAdminPanel() {
                 return `
                 <div class="wd-request-item">
                     <div class="wd-info">
-                        <span class="wd-user">${esc(w.user_name || w.method)}</span>
+                        <span class="wd-user">${esc(w.user_name || 'Member')}</span>
                         <span class="wd-amount">${esc(w.amount)}</span>
                         <span class="status-badge ${esc(w.status || 'pending')}">${esc(String(w.status || 'pending').toUpperCase())}</span>
+                    </div>
+                    <div style="font-size:11px;color:#555;margin-top:4px;">
+                        <i class="fas fa-paper-plane" style="color:#667eea;"></i> Tujuan: <strong>${esc(w.method || '-')}${w.account_dest ? ` → ${esc(w.account_dest)}` : ''}</strong>
                     </div>
                     <div class="wd-actions">
                         ${isPending ? `
@@ -2434,7 +2534,8 @@ function renderAdminPanel() {
             </div>` : ''}
             ${depoList.length === 0 ? '<p style="font-size:12px;color:#888;">Belum ada transaksi deposit.</p>' :
             depoList.map(r => {
-                const isPending = (r.status || 'pending') === 'pending';
+                // Waiting (bukti dikirim) & pending: admin bisa lihat bukti + setujui/tolak
+                const isPending = ['waiting', 'pending'].includes(r.status || 'pending');
                 return `
                 <div class="upgrade-request-item">
                     <div class="ur-info">
