@@ -637,15 +637,16 @@ body {
 }
 @media (min-width: 768px) { #mainApp { border-radius: 30px; height: 90vh; max-height: 850px; } }
 
-/* Halaman dashboard: body TIDAK boleh ikut scroll — biar bottom nav benar-benar lengket */
+/* Halaman dashboard: kunci html+body (overflow hidden) agar TIDAK ikut scroll — biar bottom nav lengket.
+   Pola ini juga mencegah bug scroll inner-container di iOS Safari. */
+html.dashboard-html,
+html.dashboard-html body { height: 100%; overflow: hidden; }
 .dashboard-body {
     background: #0a0a1a;
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
 }
 @media (max-width: 767px) { .dashboard-body { padding: 0; } }
 
@@ -707,7 +708,7 @@ body {
 .points-stats .stat-streak i { color: #fdba74; }
 .points-stats strong { font-size: 12px; color: #fff; }
 
-.main-content { flex: 1; overflow-y: auto; padding: 12px 16px 70px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.main-content { flex: 1; min-height: 0; overflow-y: auto; padding: 12px 16px 70px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 .tab-content { display: none; animation: fadeIn 0.3s ease; }
 .tab-content.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -887,9 +888,10 @@ body {
     box-shadow: 0 -6px 20px rgba(30, 30, 60, 0.06);
 }
 
-/* Mode HP: nav dikunci dengan position fixed di dasar layar (tidak ikut scroll) */
+/* Mode HP: nav MEMBER dikunci dengan position fixed di dasar layar (tidak ikut scroll).
+   Pengecualian .admin-bottom-nav karena nav admin sudah fixed dengan lebar panelnya sendiri. */
 @media (max-width: 767px) {
-    .bottom-nav {
+    .bottom-nav:not(.admin-bottom-nav) {
         position: fixed;
         left: 50%;
         right: auto;
@@ -1056,8 +1058,11 @@ body {
 .admin-tx-tab.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
 .admin-bottom-nav { background: rgba(18, 18, 40, 0.95); border-top: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); position: fixed; bottom: 0; left: 0; right: 0; max-width: 800px; margin: 0 auto; }
 .admin-bottom-nav .nav-item { color: rgba(255,255,255,0.45); }
-.admin-bottom-nav .nav-item.active { color: #8b9cf5; }
 .admin-bottom-nav .nav-item:hover { color: #fff; }
+/* Tab aktif admin: label & ikon harus TERANG (jangan warisan warna gelap nav member) */
+.admin-bottom-nav .nav-item.active { color: #8b9cf5; }
+.admin-bottom-nav .nav-item.active span { color: #fff; }
+.admin-bottom-nav .nav-item.active i { background: linear-gradient(135deg, #667eea, #764ba2); box-shadow: 0 8px 16px rgba(102, 126, 234, 0.35); }
 .admin-user-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid #f0f0f0; font-size: 13px; gap: 8px; }
 .admin-user-item:last-child { border-bottom: none; }
 .admin-user-item .u-name { font-weight: 600; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
