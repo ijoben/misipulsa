@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>MisiPulsa — 404</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { font-family: system-ui, sans-serif; background: #f4f5fb; color: #1a1a2e; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; text-align: center; }
+.card { background: #fff; padding: 32px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+h1 { margin: 0 0 8px; }
+a { color: #667eea; text-decoration: none; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>404</h1>
+  <p>Halaman tidak ditemukan.</p>
+  <p><a href="/">Kembali ke Beranda</a></p>
+</div>
+<script>
+/* GitHub Pages tidak punya rewrite server. Saat /dashboard diminta,
+   GitHub mengirim 404.html ini, lalu kita arahkan ke /dashboard.html. */
+(function () {
+    var path = window.location.pathname;
+    var clean = path.replace(/\/+$/, '');
+    if (clean && clean.indexOf('.') === -1) {
+        window.location.replace(clean + '.html' + window.location.search + window.location.hash);
+    }
+})();
+</script>
+</body>
+</html>
