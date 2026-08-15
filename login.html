@@ -21,7 +21,7 @@
     <div class="auth-container">
         <div class="auth-box">
             <div class="auth-header">
-                <a href="index.html" style="text-decoration:none;"><span class="icon"><i class="fas fa-mobile-screen-button"></i></span></a>
+                <a href="/" style="text-decoration:none;"><span class="icon"><i class="fas fa-mobile-screen-button"></i></span></a>
                 <h2>Selamat Datang Kembali!</h2>
                 <p>Login dengan Email & Password</p>
             </div>
@@ -47,9 +47,9 @@
                 </form>
 
                 <div class="auth-links">
-                    <a href="register.html"><i class="fas fa-user-plus"></i> Belum punya akun? Daftar gratis</a>
-                    <a href="reset-password.html"><i class="fas fa-key"></i> Lupa Password?</a>
-                    <a href="index.html" style="color: rgba(255,255,255,0.4); margin-top: 6px;"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</a>
+                    <a href="/register"><i class="fas fa-user-plus"></i> Belum punya akun? Daftar gratis</a>
+                    <a href="/reset-password"><i class="fas fa-key"></i> Lupa Password?</a>
+                    <a href="/" style="color: rgba(255,255,255,0.4); margin-top: 6px;"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</a>
                 </div>
             </div>
         </div>
@@ -72,7 +72,7 @@
             const result = await signInSupabase(email, password);
             if (result.success) {
                 showToast('✅ Login Berhasil!', 'success');
-                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+                setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
             } else {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Masuk';

@@ -1,18 +1,20 @@
-# ==========================================================================
-# MISIPULSA — Bersihkan URL (tanpa .html)
-# Untuk hosting Apache/cPanel. Membuat /register, /login, /dashboard,
-# /admin, /reset-password otomatis memuat file .html masing-masing.
-# Contoh: https://domain.com/register?ref=MISIXXXX
-# ==========================================================================
+# ============================================================
+# MisiPulsa — Sembunyikan ekstensi .html (Apache / cPanel)
+# Pengunjung tidak akan melihat/mengakses format .html:
+#   /dashboard       -> dashboard.html  (URL tetap tanpa .html)
+#   /dashboard.html  -> 301 redirect ke /dashboard
+# ============================================================
+Options -MultiViews
 RewriteEngine On
 
-# Jangan rewrite file/folder yang benar-benar ada
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+# 1) Redirect URL ber-ekstensi .html ke versi tanpa ekstensi (301)
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.html[\s?] [NC]
+RewriteRule ^ /%1 [R=301,L,NE]
 
-# Map halaman bersih ke file .html
-RewriteRule ^register$ register.html [L,QSA]
-RewriteRule ^login$ login.html [L,QSA]
-RewriteRule ^dashboard$ dashboard.html [L,QSA]
-RewriteRule ^admin$ admin.html [L,QSA]
-RewriteRule ^reset-password$ reset-password.html [L,QSA]
+# 2) Sajikan xxx.html saat /xxx diminta (tanpa mengubah URL)
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.html -f
+RewriteRule ^(.+?)/?$ $1.html [L]
+
+# 3) Halaman utama
+DirectoryIndex index.html

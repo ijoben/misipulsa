@@ -709,6 +709,22 @@ html.dashboard-html body { height: 100%; overflow: hidden; }
 .points-stats strong { font-size: 12px; color: #fff; }
 
 .main-content { flex: 1; min-height: 0; overflow-y: auto; padding: 12px 16px 140px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+
+/* Pull-to-refresh (mode HP) */
+.ptr-indicator {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #667eea;
+    padding: 10px 0 4px;
+    text-align: center;
+    user-select: none;
+}
+.ptr-indicator.ptr-visible { display: flex; }
+.ptr-indicator.ptr-ready { color: #4caf50; }
 .tab-content { display: none; animation: fadeIn 0.3s ease; }
 .tab-content.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }

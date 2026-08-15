@@ -21,7 +21,7 @@
     <div class="auth-container">
         <div class="auth-box">
             <div class="auth-header">
-                <a href="index.html" style="text-decoration:none;"><span class="icon"><i class="fas fa-gift"></i></span></a>
+                <a href="/" style="text-decoration:none;"><span class="icon"><i class="fas fa-gift"></i></span></a>
                 <h2>Daftar Akun Baru</h2>
                 <p>Dapatkan <strong id="bonusAmountText">Bonus Poin Gratis</strong> otomatis saat pendaftaran!</p>
             </div>
@@ -55,8 +55,8 @@
                 </form>
 
                 <div class="auth-links">
-                    <a href="login.html"><i class="fas fa-sign-in-alt"></i> Sudah punya akun? Masuk di sini</a>
-                    <a href="index.html" style="color: rgba(255,255,255,0.4); margin-top: 6px;"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</a>
+                    <a href="/login"><i class="fas fa-sign-in-alt"></i> Sudah punya akun? Masuk di sini</a>
+                    <a href="/" style="color: rgba(255,255,255,0.4); margin-top: 6px;"><i class="fas fa-arrow-left"></i> Kembali ke Beranda</a>
                 </div>
             </div>
         </div>
@@ -87,7 +87,7 @@
             
             if (result.success) {
                 showToast('🎉 Akun berhasil dibuat! Bonus pendaftaran telah masuk.', 'success');
-                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+                setTimeout(() => { window.location.href = '/dashboard'; }, 1200);
             } else {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-user-plus"></i> Daftar Akun & Klaim Bonus Poin';

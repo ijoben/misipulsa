@@ -44,7 +44,7 @@
             // GUARD ADMIN: hanya user dengan isAdmin dari database yang boleh masuk.
             if (!currentUser || !currentUser.isAdmin) {
                 showToast('⛔ Akses ditolak: hanya admin yang dapat membuka panel ini.', 'error');
-                setTimeout(() => { window.location.href = 'login.html'; }, 1200);
+                setTimeout(() => { window.location.href = '/login'; }, 1200);
                 return;
             }
             // Muat misi & penarikan langsung dari tabel Supabase, lalu render

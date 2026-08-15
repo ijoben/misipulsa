@@ -347,7 +347,7 @@ async function resetPasswordSupabase(email) {
 
     try {
         const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + '/reset-password.html',
+            redirectTo: window.location.origin + '/reset-password',
         });
         if (error) {
             showToast(`⚠️ Reset Error: ${error.message}`, 'error');
@@ -585,13 +585,13 @@ function loginAsUser(userId) {
         userId,
         name: (u && (u.full_name || u.name)) || 'User'
     }));
-    window.location.href = 'dashboard.html';
+    window.location.href = '/dashboard';
 }
 
 // Keluar dari mode lihat → kembali ke panel admin.
 function exitImpersonation() {
     clearImpersonation();
-    window.location.href = 'admin.html';
+    window.location.href = '/admin';
 }
 
 // Guard: blokir semua aksi tulis saat mode lihat (baca-saja).
@@ -834,7 +834,7 @@ function openLoginModal() {
         if (antiCheat) antiCheat.classList.remove('show');
         generateOTPModal();
     } else {
-        window.location.href = 'login.html';
+        window.location.href = '/login';
     }
 }
 
@@ -1058,8 +1058,9 @@ function performLoginDemo(name, phone) {
         showToast(`🎉 Selamat Datang, ${name}!`, 'success');
     }
 
-    if (window.location.pathname.includes('login.html') || window.location.pathname.includes('register.html')) {
-        window.location.href = 'dashboard.html';
+    const p = window.location.pathname.replace(/\.html$/, '');
+    if (p.includes('/login') || p.includes('/register')) {
+        window.location.href = '/dashboard';
         return;
     }
 
@@ -1084,7 +1085,7 @@ function logout() {
 
     showToast('👋 Anda telah keluar.', 'info');
     setTimeout(() => {
-        window.location.href = 'login.html';
+        window.location.href = '/login';
     }, 1000);
 }
 
@@ -1200,7 +1201,7 @@ function renderApp() {
         <!-- HEADER: logo kiri + notifikasi kanan -->
         <div class="header">
             <div class="header-left">
-                <a href="index.html" class="logo-text" style="text-decoration:none;">
+                <a href="/" class="logo-text" style="text-decoration:none;">
                     <span class="logo-icon"><svg class="logo-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></span>
                     <span>MisiPulsa</span>
                 </a>
@@ -1235,7 +1236,6 @@ function renderApp() {
                         <div class="points-right">
                             <div class="points-level" id="userLevel">${isPremium ? '<i class="fas fa-crown"></i> Premium' : (youtubeUpgraded || adUpgraded ? '<i class="fas fa-rocket"></i> Upgrade' : '<i class="fas fa-user"></i> Free')}</div>
                             <div class="points-stats">
-                                <span class="stat-earn"><i class="fas fa-chart-simple"></i> <strong id="totalEarned">${currentUser ? currentUser.totalEarned : 0}</strong></span>
                                 <span class="stat-streak"><i class="fas fa-fire"></i> <strong id="streakCount">${currentUser ? currentUser.streak : 1}</strong></span>
                             </div>
                         </div>
@@ -1317,12 +1317,10 @@ function switchTab(tabName) {
 
 function updateUI() {
     const userPointsEl = document.getElementById('userPoints');
-    const totalEarned = document.getElementById('totalEarned');
     const streakCount = document.getElementById('streakCount');
     const userLevel = document.getElementById('userLevel');
 
     if (userPointsEl) userPointsEl.textContent = userPoints.toLocaleString();
-    if (totalEarned && currentUser) totalEarned.textContent = currentUser.totalEarned.toLocaleString();
     if (streakCount && currentUser) streakCount.textContent = currentUser.streak;
 
     // Titik merah di lonceng: muncul saat ada penarikan pending
@@ -1346,6 +1344,118 @@ function updateUI() {
     renderWithdrawHistory();
     renderReferral();
     renderAccount();
+
+    // Pasang ulang pull-to-refresh (konten dirender ulang)
+    initPullToRefresh();
+}
+
+// ==================== PULL-TO-REFRESH (MODE HP) ====================
+// Tarik konten ke bawah di posisi paling atas untuk me-refresh data dari server.
+let _ptrPulling = false;
+let _ptrStartY = 0;
+let _ptrCurrentY = 0;
+
+function initPullToRefresh() {
+    const el = document.querySelector('.main-content');
+    if (!el) return;
+    if (!('ontouchstart' in window)) return; // hanya perangkat sentuh (HP)
+    if (el.dataset.ptrInit === '1') return; // jangan dobel
+    el.dataset.ptrInit = '1';
+
+    const threshold = 70; // px agar "lepas untuk refresh"
+
+    function indicator() {
+        let ind = document.getElementById('ptrIndicator');
+        if (!ind) {
+            ind = document.createElement('div');
+            ind.id = 'ptrIndicator';
+            ind.className = 'ptr-indicator';
+            ind.innerHTML = '<i class="fas fa-arrow-down"></i> <span>Tarik untuk refresh</span>';
+            el.prepend(ind);
+        }
+        return ind;
+    }
+
+    function showIndicator(dist) {
+        const ind = indicator();
+        if (dist <= 0) {
+            ind.classList.remove('ptr-visible');
+            return;
+        }
+        ind.classList.add('ptr-visible');
+        if (dist >= threshold) {
+            ind.classList.add('ptr-ready');
+            ind.innerHTML = '<i class="fas fa-rotate"></i> <span>Lepas untuk refresh</span>';
+        } else {
+            ind.classList.remove('ptr-ready');
+            ind.innerHTML = '<i class="fas fa-arrow-down"></i> <span>Tarik untuk refresh</span>';
+        }
+    }
+
+    function hideIndicator() {
+        const ind = document.getElementById('ptrIndicator');
+        if (ind) ind.classList.remove('ptr-visible');
+    }
+
+    el.addEventListener('touchstart', (e) => {
+        if (el.scrollTop <= 0 && e.touches.length === 1) {
+            _ptrPulling = true;
+            _ptrStartY = e.touches[0].clientY;
+            _ptrCurrentY = _ptrStartY;
+        }
+    }, { passive: true });
+
+    el.addEventListener('touchmove', (e) => {
+        if (!_ptrPulling) return;
+        const y = e.touches[0].clientY;
+        const dist = y - _ptrStartY;
+        if (dist <= 0) {
+            showIndicator(0);
+            return;
+        }
+        _ptrCurrentY = y;
+        if (dist > 0) e.preventDefault(); // cegah scroll/overscroll saat menarik
+        showIndicator(dist);
+    }, { passive: false });
+
+    el.addEventListener('touchend', () => {
+        if (!_ptrPulling) return;
+        _ptrPulling = false;
+        const dist = _ptrCurrentY - _ptrStartY;
+        if (dist >= threshold) {
+            const ind = indicator();
+            ind.classList.remove('ptr-ready');
+            ind.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Memuat ulang...</span>';
+            refreshDashboardData();
+        } else {
+            hideIndicator();
+        }
+    });
+}
+
+// Muat ulang data dashboard dari server (tanpa reload halaman penuh)
+async function refreshDashboardData() {
+    try {
+        if (supabaseClient && currentUser && currentUser.id) {
+            await Promise.all([loadMissionsFromServer(), fetchMyWithdrawals(), fetchMyDeposits(), loadBanksFromServer(), loadQrisUpgradeConfig()]);
+            await fetchUserProfileSupabase(currentUser.id, currentUser.email);
+            renderApp();
+        } else {
+            window.location.reload();
+            return;
+        }
+        hidePtrIndicator();
+        showToast('✅ Data diperbarui!', 'success');
+    } catch (e) {
+        console.warn('Refresh gagal:', e);
+        hidePtrIndicator();
+        showToast('⚠️ Gagal memperbarui data.', 'error');
+    }
+}
+
+function hidePtrIndicator() {
+    const ind = document.getElementById('ptrIndicator');
+    if (ind) ind.classList.remove('ptr-visible');
 }
 
 // ==================== NOTIFIKASI (LONCENG DI HEADER) ====================
@@ -2481,7 +2591,7 @@ function renderAccount() {
 
         <div class="account-menu">
             ${currentUser && currentUser.isAdmin ? `
-            <a href="admin.html" class="menu-item" style="text-decoration:none;color:inherit;">
+            <a href="/admin" class="menu-item" style="text-decoration:none;color:inherit;">
                 <span class="icon"><i class="fas fa-wrench"></i></span>
                 <span class="text">Buka Admin Panel</span>
                 <span class="arrow">›</span>
@@ -2836,7 +2946,7 @@ function renderAdminPanel() {
                 <div class="row"><span class="label">Mode Data:</span><span class="value">${supabaseClient ? 'Online (server)' : 'Lokal (demo)'}</span></div>
             </div>
             <div class="account-menu">
-                <a href="dashboard.html" class="menu-item" style="text-decoration:none;color:inherit;">
+                <a href="/dashboard" class="menu-item" style="text-decoration:none;color:inherit;">
                     <span class="icon"><i class="fas fa-mobile-screen-button"></i></span>
                     <span class="text">Buka Dashboard Member</span>
                     <span class="arrow">›</span>
@@ -3725,16 +3835,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         try { window.misipulsaSessionReady(); } catch (e) { console.warn(e); }
     }
 
-    const path = window.location.pathname;
-    const onAuthPage = path.includes('login.html') || path.includes('register.html') || path.includes('reset-password.html');
-    const isDashboard = path.includes('dashboard.html');
-    const isAdminPage = path.includes('admin.html');
+    const path = window.location.pathname.replace(/\.html$/, ''); // normalisasi (boleh /login atau /login.html)
+    const onAuthPage = path.includes('/login') || path.includes('/register') || path.includes('/reset-password');
+    const isDashboard = path.includes('/dashboard');
+    const isAdminPage = path.includes('/admin');
 
     if (!currentUser) {
         // Halaman yang butuh login: arahkan ke login bila Supabase aktif
         if (configured && (isDashboard || isAdminPage)) {
             showToast('⚠️ Silakan login terlebih dahulu.', 'warning');
-            setTimeout(() => { window.location.href = 'login.html'; }, 800);
+            setTimeout(() => { window.location.href = '/login'; }, 800);
             return;
         }
         // Mode demo (Supabase belum dikonfigurasi): login demo eksplisit,
@@ -3749,7 +3859,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (isAdminPage && !currentUser.isAdmin) {
         showToast('⛔ Akses ditolak: hanya admin yang dapat membuka panel ini.', 'error');
-        setTimeout(() => { window.location.href = 'login.html'; }, 1200);
+        setTimeout(() => { window.location.href = '/login'; }, 1200);
         return;
     }
 
