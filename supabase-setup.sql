@@ -361,6 +361,8 @@ CREATE TABLE IF NOT EXISTS public.deposits (
 -- Kolom bukti & paket (aman dijalankan ulang)
 ALTER TABLE public.deposits ADD COLUMN IF NOT EXISTS note TEXT;
 ALTER TABLE public.deposits ADD COLUMN IF NOT EXISTS proof_image TEXT;
+ALTER TABLE public.deposits ADD COLUMN IF NOT EXISTS code TEXT;             -- Kode verifikasi unik 3 digit (3 digit terakhir nominal transfer)
+ALTER TABLE public.deposits ADD COLUMN IF NOT EXISTS account_number TEXT;   -- No. rekening bank tujuan (untuk tombol salin di riwayat)
 
 ALTER TABLE public.deposits ENABLE ROW LEVEL SECURITY;
 
@@ -376,6 +378,30 @@ CREATE POLICY "Users can insert own deposits." ON public.deposits
 DROP POLICY IF EXISTS "Admins can manage deposits" ON public.deposits;
 CREATE POLICY "Admins can manage deposits" ON public.deposits
     FOR ALL USING (public.is_admin_user()) WITH CHECK (public.is_admin_user());
+
+-- Member mengirim bukti transfer untuk deposit miliknya yang masih 'waiting'.
+-- SECURITY DEFINER + guard status, jadi user TIDAK bisa ubah statusnya sendiri.
+CREATE OR REPLACE FUNCTION public.submit_deposit_proof(p_deposit_id TEXT, p_proof TEXT)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE v_owner UUID;
+BEGIN
+    SELECT user_id INTO v_owner FROM public.deposits WHERE id = p_deposit_id;
+    IF v_owner IS NULL OR v_owner <> auth.uid() THEN
+        RAISE EXCEPTION 'Deposit tidak ditemukan';
+    END IF;
+    UPDATE public.deposits
+       SET proof_image = p_proof, status = 'pending'
+     WHERE id = p_deposit_id AND status = 'waiting';
+    RETURN FOUND;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.submit_deposit_proof(TEXT, TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.submit_deposit_proof(TEXT, TEXT) TO authenticated;
 
 -- ==========================================================================
 -- 10. KOLOM USER_NAME DI WITHDRAWALS (untuk WD manual oleh admin)

@@ -944,6 +944,7 @@ let withdrawRequests = [];
 let banks = [];
 let deposits = [];
 let myDeposits = []; // Deposit milik member (untuk riwayat transfer manual)
+let pendingProofFiles = {}; // Bukti transfer yang dipilih member, menunggu tombol "Kirim Bukti"
 
 // Bonus pendaftaran: konfigurasi (diatur admin di tab Setting) & penanda klaim.
 let signupBonusConfig = { amount: 100, is_active: true };
@@ -954,6 +955,7 @@ const MANUAL_PACKAGES = {
     'Ads VIP': { price: 'Rp 10.000', points: 0 },
     'Unlimited Premium': { price: 'Rp 25.000', points: 0 }
 };
+let manualPkg = 'YouTube VIP'; // Paket terpilih di kartu pilihan upgrade manual
 
 let downlineList = [
     { name: 'Budi Santoso', phone: '0812****1122', level: 1, date: '10-08-2026' },
@@ -1784,58 +1786,233 @@ function renderUpgrades() {
 
         <div class="upgrade-card">
             <div class="icon"><i class="fas fa-building-columns"></i></div>
-            <h4>Transfer Manual (Bank)</h4>
-            <p style="font-size:12px;color:#888;">Pilih paket, transfer ke rekening tujuan, lalu upload bukti transfer. Admin memverifikasi sebelum upgrade aktif.</p>
+            <h4>Upgrade via Transfer Bank</h4>
+            <p style="font-size:12px;color:#888;">Buat permintaan, lalu selesaikan pembayaran lewat tombol di <strong>riwayat</strong> di bawah: transfer ke bank → upload bukti → kirim.</p>
 
-            <div class="manual-transfer-form">
-                <label for="manualUpgradeType"><i class="fas fa-gem"></i> Pilih Paket Upgrade</label>
-                <select id="manualUpgradeType">
-                    ${Object.entries(MANUAL_PACKAGES).map(([name, p]) => `<option value="${esc(name)}">${esc(name)} — ${esc(p.price)}</option>`).join('')}
-                </select>
-
-                <label for="manualBankSelect"><i class="fas fa-building-columns"></i> Transfer ke Bank</label>
-                <select id="manualBankSelect">
-                    ${activeBanks.length === 0 ? '<option value="">Belum ada bank aktif</option>' :
-                    activeBanks.map(b => `<option value="${esc(b.id)}">${esc(b.bank_name)} • ${esc(b.account_number)} (a.n. ${esc(b.account_name || '-')})</option>`).join('')}
-                </select>
-
-                <label for="manualProofInput"><i class="fas fa-image"></i> Upload Bukti Transfer (foto)</label>
-                <input type="file" id="manualProofInput" accept="image/*" onchange="previewManualProof(event)">
-                <img id="manualProofPreview" alt="Pratinjau bukti transfer">
-
-                <button class="btn-paid" onclick="submitManualTransfer()">
-                    <i class="fas fa-paper-plane"></i> Kirim Bukti Transfer
-                </button>
+            <div class="pkg-picker">
+                ${Object.entries(MANUAL_PACKAGES).map(([name, p]) => `
+                <div class="pkg-card ${manualPkg === name ? 'selected' : ''}" onclick="selectManualPkg('${esc(name)}')" data-pkg="${esc(name)}">
+                    <i class="fas fa-${pkgIcon(name)}"></i>
+                    <div class="pkg-name">${esc(name)}</div>
+                    <div class="pkg-price">${esc(p.price)}</div>
+                </div>`).join('')}
             </div>
+            <button class="btn-upgrade-manual" onclick="createManualUpgradeRequest()">
+                <i class="fas fa-bolt"></i> Upgrade Manual
+            </button>
 
-            <h4 style="margin:16px 0 8px;font-size:14px;"><i class="fas fa-receipt"></i> Riwayat Transfer Manual</h4>
+            <h4 style="margin:16px 0 8px;font-size:14px;"><i class="fas fa-receipt"></i> Riwayat Upgrade</h4>
             <div id="myDepositsList">
-                ${myDeps.length === 0 ? '<p style="font-size:12px;color:#999;">Belum ada transfer manual.</p>' :
-                myDeps.map(d => `
-                    <div class="upgrade-request-item" style="border-left-color:#667eea;">
-                        <div class="ur-info">
-                            <span class="ur-type">${esc(d.note || d.type || d.method || 'Transfer')}</span>
-                            <span class="ur-amount">${esc(d.amount)}</span>
-                            <span class="ur-status ${esc(d.status || 'pending')}">${esc(String(d.status || 'pending').toUpperCase())}</span>
-                        </div>
-                        <div style="font-size:11px;color:#999;margin-top:4px;">${esc(d.method || '')} • ${esc(d.created_at ? new Date(d.created_at).toLocaleDateString() : (d.date || ''))}</div>
-                    </div>`).join('')}
+                ${myDeps.length === 0 ? '<p style="font-size:12px;color:#999;">Belum ada permintaan. Buat permintaan di atas, lalu selesaikan pembayaran lewat tombol di sini.</p>' :
+                myDeps.map(d => renderDepositRow(d)).join('')}
             </div>
         </div>
     `;
 }
 
-// Pratinjau bukti transfer yang dipilih member (tanpa upload)
-function previewManualProof(event) {
-    const file = event && event.target && event.target.files && event.target.files[0];
-    const preview = document.getElementById('manualProofPreview');
-    if (!file || !preview) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        preview.src = e.target.result;
-        preview.style.display = 'block';
+// ==================== UPGRADE VIA TRANSFER BANK (aksi lewat tombol di riwayat) ====================
+// Baris riwayat upgrade/deposit member — tombol Transfer ke Bank / Upload Bukti / Kirim Bukti
+function renderDepositRow(d) {
+    const st = String(d.status || 'pending');
+    const amount = esc(d.amount || '');
+    const code = d.code ? esc(String(d.code)) : '';
+    const dateTxt = esc(d.created_at ? new Date(d.created_at).toLocaleDateString('id-ID') : (d.date || ''));
+    let badge = `<span class="ur-status ${st}">${esc(String(st).toUpperCase())}</span>`;
+    let actions = '';
+
+    if (st === 'waiting') {
+        badge = '<span class="ur-status waiting">Menunggu Pembayaran</span>';
+        actions = `
+            <div class="ur-actions">
+                <button type="button" class="btn-edit" onclick="toggleBankDetail('${esc(d.id)}')"><i class="fas fa-building-columns"></i> Transfer ke Bank</button>
+                <button type="button" class="btn-edit" onclick="document.getElementById('proofInput-${esc(d.id)}').click()"><i class="fas fa-image"></i> Upload Bukti</button>
+                <button type="button" class="btn-approve" id="sendBtn-${esc(d.id)}" onclick="sendDepositProof('${esc(d.id)}')" disabled><i class="fas fa-paper-plane"></i> Kirim Bukti</button>
+                <input type="file" id="proofInput-${esc(d.id)}" accept="image/*" style="display:none;" onchange="pickDepositProof('${esc(d.id)}', event)">
+            </div>
+            <div class="bank-detail" id="bankDetail-${esc(d.id)}" style="display:none;">
+                <div class="bd-title"><i class="fas fa-university"></i> Transfer ke Bank</div>
+                <div class="bd-row"><span>Bank / Tujuan</span><strong>${esc(d.method || '-')}</strong></div>
+                <div class="bd-row"><span>Nominal</span><strong class="depo-amount-highlight">${amount}</strong></div>
+                <div class="bd-hint"><i class="fas fa-circle-info"></i> Transfer TEPAT sebesar <strong>${amount}</strong> — 3 digit terakhir (<strong>${code}</strong>) adalah <strong>kode verifikasi unik</strong> transaksi ini.</div>
+                ${d.account_number ? `<button type="button" class="btn-outline" onclick="copyBankNumberForDeposit('${esc(d.id)}')"><i class="fas fa-copy"></i> Salin No. Rekening</button>` : ''}
+            </div>
+            <div class="proof-status" id="proofStatus-${esc(d.id)}"></div>
+        `;
+    } else if (st === 'pending') {
+        badge = '<span class="ur-status pending">Menunggu Verifikasi</span>';
+        actions = `<div class="proof-status"><i class="fas fa-file-image"></i> Bukti terkirim — menunggu verifikasi admin</div>`;
+    } else if (st === 'approved') {
+        badge = '<span class="ur-status approved">Disetujui</span>';
+        actions = `<div class="proof-status"><i class="fas fa-circle-check" style="color:#4caf50;"></i> Upgrade aktif</div>`;
+    } else {
+        badge = '<span class="ur-status rejected">Ditolak</span>';
+        actions = `<div class="proof-status"><i class="fas fa-circle-xmark" style="color:#f44336;"></i> Hubungi admin jika ini keliru</div>`;
+    }
+
+    return `
+        <div class="upgrade-request-item" style="border-left-color:#667eea;">
+            <div class="ur-info">
+                <span class="ur-type">${esc(d.note || d.type || d.method || 'Transfer')}</span>
+                <span class="ur-amount">${amount}${code ? ` <small style="font-size:10px;color:#888;">kode ${code}</small>` : ''}</span>
+                ${badge}
+            </div>
+            <div style="font-size:11px;color:#999;margin-top:4px;">${esc(d.method || '')} • ${dateTxt}</div>
+            ${actions}
+        </div>`;
+}
+
+// Kode verifikasi unik 3 digit (100–999), dicek ke semua deposit agar tidak bentrok
+async function genDepositCode() {
+    const existing = new Set();
+    [...(myDeposits || []), ...(deposits || []), ...(upgradeRequests || [])].forEach(x => {
+        if (x && x.code) existing.add(String(x.code));
+    });
+    if (supabaseClient) {
+        try {
+            const { data } = await supabaseClient.from('deposits').select('code');
+            (data || []).forEach(d => { if (d && d.code) existing.add(String(d.code)); });
+        } catch (e) { /* abaikan — fallback ke daftar lokal */ }
+    }
+    let code;
+    do { code = String(Math.floor(Math.random() * 899) + 100); } while (existing.has(code));
+    return code;
+}
+
+// Tambahkan kode unik di belakang nominal: 'Rp 10.000' + '023' → 'Rp 10.023'
+function formatWithCode(priceStr, code) {
+    const base = parseInt(String(priceStr).replace(/[^0-9]/g, ''), 10) || 0;
+    return 'Rp ' + (base + parseInt(code, 10)).toLocaleString('id-ID');
+}
+
+// Buat permintaan upgrade transfer bank (status: menunggu pembayaran)
+async function createManualUpgradeRequest() {
+    if (impersonationBlocked()) return;
+    if (!currentUser) {
+        showToast('Silakan login terlebih dahulu.', 'warning');
+        return;
+    }
+    const type = manualPkg || Object.keys(MANUAL_PACKAGES)[0];
+    // Bank otomatis: rekening aktif pertama (detail bank tampil di riwayat upgrade)
+    const activeBanks = banks.filter(b => b.is_active !== false);
+    if (activeBanks.length === 0) {
+        showToast('Belum ada rekening bank aktif. Hubungi admin.', 'warning');
+        return;
+    }
+    const bank = activeBanks[0];
+    const pkg = MANUAL_PACKAGES[type] || { price: 'Rp 10.000', points: 0 };
+
+    showToast('Membuat permintaan upgrade...', 'info');
+    const code = await genDepositCode();
+    const amount = formatWithCode(pkg.price, code);
+    const newDep = {
+        id: 'DEP-' + Date.now(),
+        user_id: currentUser.id || null,
+        user_name: currentUser.name || 'Member',
+        amount: amount,
+        code: code,
+        points: pkg.points || 0,
+        method: `${bank.bank_name} • ${bank.account_number}${bank.account_name ? ' (a.n. ' + bank.account_name + ')' : ''}`,
+        account_number: bank.account_number,
+        note: type,
+        status: 'waiting'
     };
-    reader.readAsDataURL(file);
+
+    if (supabaseClient) {
+        try {
+            const { error } = await supabaseClient.from('deposits').insert(newDep);
+            if (error) {
+                showToast(`Gagal membuat permintaan: ${error.message}`, 'error');
+                return;
+            }
+            myDeposits.unshift(newDep);
+        } catch (e) {
+            showToast(`Gagal membuat permintaan: ${e.message}`, 'error');
+            return;
+        }
+    } else {
+        upgradeRequests.unshift({ ...newDep, user: newDep.user_name, date: new Date().toLocaleDateString() });
+        saveData();
+    }
+
+    showToast(`Permintaan dibuat! Transfer ${amount} lalu kirim bukti di riwayat.`, 'success');
+    renderUpgrades();
+    const list = document.getElementById('myDepositsList');
+    if (list) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Pilih paket di kartu pilihan upgrade manual
+function selectManualPkg(name) {
+    manualPkg = name;
+    document.querySelectorAll('.pkg-card').forEach(c => c.classList.toggle('selected', c.getAttribute('data-pkg') === name));
+}
+
+function pkgIcon(name) {
+    if (name.includes('YouTube')) return 'circle-play';
+    if (name.includes('Ads')) return 'tv';
+    if (name.includes('Premium')) return 'crown';
+    return 'gem';
+}
+
+// Tampilkan/sembunyikan detail bank tujuan di baris riwayat
+function toggleBankDetail(id) {
+    const el = document.getElementById('bankDetail-' + id);
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function copyBankNumberForDeposit(id) {
+    const dep = [...(myDeposits || []), ...(upgradeRequests || [])].find(x => String(x.id) === String(id));
+    if (dep && dep.account_number) {
+        navigator.clipboard.writeText(String(dep.account_number));
+        showToast(`No. rekening disalin: ${dep.account_number}`, 'success');
+    }
+}
+
+// Pilih & kompres bukti — disimpan sementara sampai tombol "Kirim Bukti"
+async function pickDepositProof(id, event) {
+    const file = event && event.target && event.target.files && event.target.files[0];
+    if (!file) return;
+    showToast('Memproses bukti transfer...', 'info');
+    try {
+        pendingProofFiles[id] = await readImageProof(file);
+    } catch (e) {
+        showToast(e.message || 'Gagal memproses gambar.', 'error');
+        return;
+    }
+    const sendBtn = document.getElementById('sendBtn-' + id);
+    if (sendBtn) sendBtn.disabled = false;
+    const st = document.getElementById('proofStatus-' + id);
+    if (st) st.innerHTML = '<i class="fas fa-file-image" style="color:#4caf50;"></i> Bukti siap dikirim — klik <strong>Kirim Bukti</strong>.';
+    showToast('Bukti siap. Klik "Kirim Bukti".', 'success');
+}
+
+// Kirim bukti transfer → status jadi pending (menunggu verifikasi admin)
+async function sendDepositProof(id) {
+    if (impersonationBlocked()) return;
+    const proof = pendingProofFiles[id];
+    if (!proof) {
+        showToast('Upload bukti transfer terlebih dahulu.', 'warning');
+        return;
+    }
+    if (supabaseClient) {
+        try {
+            const { error } = await supabaseClient.rpc('submit_deposit_proof', { p_deposit_id: id, p_proof: proof });
+            if (error) {
+                showToast(`Gagal mengirim bukti: ${error.message}`, 'error');
+                return;
+            }
+            const dep = myDeposits.find(x => String(x.id) === String(id));
+            if (dep) { dep.status = 'pending'; dep.proof_image = proof; }
+        } catch (e) {
+            showToast(`Gagal mengirim bukti: ${e.message}`, 'error');
+            return;
+        }
+    } else {
+        upgradeRequests = upgradeRequests.map(r => (String(r.id) === String(id) ? { ...r, status: 'pending', proof_image: proof } : r));
+        saveData();
+    }
+    delete pendingProofFiles[id];
+    showToast('Bukti terkirim. Menunggu konfirmasi admin.', 'success');
+    renderUpgrades();
 }
 
 // Baca file gambar, kompres jadi JPEG data URL (maks ~640px, kualitas 0.65)
@@ -1871,86 +2048,6 @@ function readImageProof(file) {
     });
 }
 
-// Kirim transfer manual: simpan ke tabel `deposits` (status pending + bukti).
-async function submitManualTransfer() {
-    if (impersonationBlocked()) return;
-    if (!currentUser) {
-        showToast('Silakan login terlebih dahulu.', 'warning');
-        return;
-    }
-    const type = document.getElementById('manualUpgradeType')?.value;
-    const bankId = document.getElementById('manualBankSelect')?.value;
-    const fileInput = document.getElementById('manualProofInput');
-
-    if (!type || !bankId) {
-        showToast('Pilih paket upgrade dan bank tujuan terlebih dahulu.', 'warning');
-        return;
-    }
-    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
-        showToast('Upload bukti transfer (foto) terlebih dahulu.', 'warning');
-        return;
-    }
-
-    const bank = banks.find(b => String(b.id) === String(bankId));
-    const pkg = MANUAL_PACKAGES[type] || { price: 'Rp 10.000' };
-
-    showToast('Memproses bukti transfer...', 'info');
-    let proof = null;
-    try {
-        proof = await readImageProof(fileInput.files[0]);
-    } catch (e) {
-        showToast(e.message || 'Gagal memproses gambar.', 'error');
-        return;
-    }
-
-    const newDep = {
-        id: 'DEP-' + Date.now(),
-        user_id: currentUser.id || null,
-        user_name: currentUser.name || 'Member',
-        amount: pkg.price,
-        points: pkg.points || 0,
-        method: bank ? bank.bank_name : 'Transfer Bank',
-        note: type,
-        status: 'pending',
-        proof_image: proof
-    };
-
-    if (supabaseClient) {
-        try {
-            const { error } = await supabaseClient.from('deposits').insert(newDep);
-            if (error) {
-                showToast(`Gagal mengirim: ${error.message}`, 'error');
-                return;
-            }
-            myDeposits.unshift(newDep);
-        } catch (e) {
-            showToast(`Gagal mengirim: ${e.message}`, 'error');
-            return;
-        }
-    } else {
-        // Mode demo
-        upgradeRequests.unshift({
-            id: newDep.id,
-            user: newDep.user_name,
-            type: newDep.note,
-            amount: newDep.amount,
-            points: newDep.points,
-            method: newDep.method,
-            date: new Date().toLocaleDateString(),
-            status: 'pending',
-            proof_image: newDep.proof_image,
-            note: newDep.note
-        });
-        saveData();
-    }
-
-    if (fileInput) fileInput.value = '';
-    const preview = document.getElementById('manualProofPreview');
-    if (preview) { preview.style.display = 'none'; preview.src = ''; }
-
-    showToast('Bukti transfer terkirim. Menunggu konfirmasi admin.', 'success');
-    renderUpgrades();
-}
 
 function copyBankNumber(accountNumber) {
     navigator.clipboard.writeText(String(accountNumber));
@@ -2305,6 +2402,7 @@ function renderAdminPanel() {
 
         <div id="adminTxDepo" class="admin-section ${adminActiveTxTab === 'depo' ? '' : 'admin-hidden'}">
             <h4><i class="fas fa-building-columns"></i> Riwayat Deposit / Upgrade</h4>
+            <p style="font-size:11px;color:#888;margin:-4px 0 10px;"><i class="fas fa-circle-info"></i> Verifikasi transfer: <strong>3 digit terakhir nominal</strong> (mis. Rp 10.023 → kode <strong>023</strong>) adalah kode unik transaksi — cocokkan dengan bukti transfer member.</p>
             <button class="btn-add" onclick="toggleAdminDepoForm()">${adminShowDepoForm ? '— Tutup Form' : '+ Tambah Deposit Manual'}</button>
             ${adminShowDepoForm ? `
             <div class="admin-form">
