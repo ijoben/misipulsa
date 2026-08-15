@@ -28,6 +28,9 @@ function isSupabaseConfigured() {
 }
 
 function initSupabase() {
+    // Idempotent: jangan buat client kedua (hindari race handler DOMContentLoaded
+    // & peringatan "Multiple GoTrueClient instances")
+    if (supabaseClient) return true;
     const urlOk = typeof SUPABASE_URL === 'string' &&
                   SUPABASE_URL.startsWith('http') &&
                   !SUPABASE_URL.includes('YOUR_');

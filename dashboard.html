@@ -114,6 +114,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             // Pulihkan sesi lokal dulu (order-independent terhadap script defer)
             if (typeof loadData === 'function') loadData();
+            if (typeof initSupabase === 'function') initSupabase();
             if (typeof checkSupabaseSession === 'function') {
                 await checkSupabaseSession();
             }

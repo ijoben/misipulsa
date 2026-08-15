@@ -87,6 +87,11 @@
 <script defer src="sistem.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
+            // Order-independent terhadap script defer: pulihkan sesi lokal &
+            // inisialisasi client DULU sebelum cek sesi, supaya isAdmin dari
+            // database benar-benar terisi saat guard dijalankan.
+            if (typeof loadData === 'function') loadData();
+            if (typeof initSupabase === 'function') initSupabase();
             if (typeof checkSupabaseSession === 'function') {
                 await checkSupabaseSession();
             }
