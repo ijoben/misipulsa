@@ -1,156 +1,142 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video & Iklan</title>
-    <meta name="description" content="Kumpulkan poin gratis dengan nonton video YouTube dan iklan, daily login, serta ajak teman. Tukarkan poinmu jadi pulsa. Daftar sekarang, bonus 100 poin!">
-    <meta name="keywords" content="pulsa gratis, misi pulsa, dapat pulsa, nonton video dapat pulsa, poin gratis, isi pulsa gratis">
-    <meta name="robots" content="index, follow">
-    <meta name="author" content="MisiPulsa">
-    <meta name="theme-color" content="#5a67d8">
-    <link rel="canonical" href="/">
-
-    <link rel="icon" type="image/svg+xml" href="/logo.svg">
-    <link rel="apple-touch-icon" href="/logo.svg">
-
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="MisiPulsa">
-    <meta property="og:locale" content="id_ID">
-    <meta property="og:title" content="MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video & Iklan">
-    <meta property="og:description" content="Kumpulkan poin gratis: nonton YouTube, iklan, daily login, dan ajak teman. Tukarkan jadi pulsa. Bonus 100 poin untuk pendaftar baru!">
-    <meta property="og:url" content="/">
-    <meta property="og:image" content="/og-image.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="MisiPulsa — Dapatkan Pulsa Gratis">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video & Iklan">
-    <meta name="twitter:description" content="Kumpulkan poin gratis: nonton YouTube, iklan, daily login, dan ajak teman. Tukarkan jadi pulsa. Bonus 100 poin!">
-    <meta name="twitter:image" content="/og-image.png">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <!-- Google Fonts async: hanya 3 weights -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap"></noscript>
-
-    <!-- Landing CSS only (5KB vs 55KB full style.css) -->
-    <link rel="stylesheet" href="landing.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video & Iklan</title>
+<meta name="description" content="Kumpulkan poin gratis dengan nonton video YouTube dan iklan, daily login, serta ajak teman. Tukarkan poinmu jadi pulsa. Daftar sekarang, bonus 100 poin!">
+<meta name="keywords" content="pulsa gratis, misi pulsa, dapat pulsa, nonton video dapat pulsa, poin gratis, isi pulsa gratis">
+<meta name="robots" content="index, follow">
+<meta name="author" content="MisiPulsa">
+<meta name="theme-color" content="#5a67d8">
+<link rel="canonical" href="/">
+<link rel="icon" type="image/svg+xml" href="/logo.svg">
+<link rel="apple-touch-icon" href="/logo.svg">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MisiPulsa">
+<meta property="og:locale" content="id_ID">
+<meta property="og:title" content="MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video & Iklan">
+<meta property="og:description" content="Kumpulkan poin gratis: nonton YouTube, iklan, daily login, dan ajak teman. Tukarkan jadi pulsa. Bonus 100 poin untuk pendaftar baru!">
+<meta property="og:url" content="/">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="MisiPulsa — Dapatkan Pulsa Gratis">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video & Iklan">
+<meta name="twitter:description" content="Kumpulkan poin gratis: nonton YouTube, iklan, daily login, dan ajak teman. Tukarkan jadi pulsa. Bonus 100 poin!">
+<meta name="twitter:image" content="/og-image.png">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a1a;color:#fff;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.skip-link{position:absolute;top:-100px;left:16px;background:#5a67d8;color:#fff;padding:12px 24px;border-radius:0 0 8px 8px;font-weight:700;font-size:14px;text-decoration:none;z-index:10000;transition:top .2s}
+.skip-link:focus{top:0;outline:3px solid #f093fb;outline-offset:2px}
+a:focus-visible,button:focus-visible,[role="button"]:focus-visible{outline:3px solid #5a67d8;outline-offset:2px;border-radius:4px}
+.landing-page{min-height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.bg-effects{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.orb{position:absolute;border-radius:50%;opacity:.3;will-change:transform;contain:layout style}
+.orb-1{width:400px;height:400px;background:#5a67d8;top:-100px;right:-100px;filter:blur(60px);animation:fO 20s ease-in-out infinite}
+.orb-2{width:300px;height:300px;background:#764ba2;bottom:-50px;left:-50px;filter:blur(60px);animation:fO 20s ease-in-out infinite -7s}
+.orb-3{width:200px;height:200px;background:#f093fb;top:50%;left:50%;transform:translate(-50%,-50%);filter:blur(50px);animation:fO 20s ease-in-out infinite -14s;opacity:.15}
+@keyframes fO{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-30px) scale(1.05)}66%{transform:translate(-20px,20px) scale(.95)}}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:50px 50px}
+.landing-content{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;min-height:100vh}
+.top-bar{position:absolute;top:0;left:0;right:0;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;z-index:10;background:linear-gradient(180deg,rgba(10,10,26,.8),transparent)}
+.logo{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:800;text-decoration:none;color:#fff}
+.logo .icon{width:32px;height:32px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#5a67d8,#764ba2);color:#fff;box-shadow:0 6px 16px rgba(102,126,234,.45)}
+.logo span{background:linear-gradient(135deg,#fff,#c7d2fe);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.top-nav-links{display:flex;align-items:center;gap:12px}
+.btn-login-top{padding:8px 20px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:25px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:all .3s;backdrop-filter:blur(10px);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn-login-top:hover{background:rgba(255,255,255,.15);transform:scale(1.05)}
+.hero{text-align:center;max-width:500px;margin:0 auto;padding-top:60px}
+.badge{display:inline-block;background:rgba(102,126,234,.2);border:1px solid rgba(102,126,234,.3);padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;color:#5a67d8;margin-bottom:20px;letter-spacing:1px;text-transform:uppercase;animation:pB 2s ease-in-out infinite}
+@keyframes pB{0%,100%{opacity:1}50%{opacity:.6}}
+.hero h1{font-size:42px;font-weight:900;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,#fff 30%,#5a67d8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.highlight{background:linear-gradient(135deg,#f093fb,#f5576c);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:16px;color:rgba(255,255,255,.8);line-height:1.7;max-width:400px;margin:0 auto 30px}
+.hero-buttons{display:flex;flex-direction:column;gap:12px;align-items:center}
+.btn-primary{padding:14px 48px;background:linear-gradient(135deg,#5a67d8,#764ba2);border:none;border-radius:50px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;transition:all .3s;width:100%;max-width:300px;position:relative;overflow:hidden;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary::before{content:'';position:absolute;top:0;left:-100%;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transition:.5s}
+.btn-primary:hover::before{left:100%}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(102,126,234,.4)}
+.btn-secondary{padding:12px 32px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:50px;color:rgba(255,255,255,.85);font-size:14px;font-weight:600;cursor:pointer;transition:all .3s;width:100%;max-width:300px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-secondary:hover{background:rgba(255,255,255,.1);color:#fff}
+.stats{display:flex;gap:30px;margin-top:40px;padding:20px 30px;background:rgba(255,255,255,.03);border-radius:16px;border:1px solid rgba(255,255,255,.05);backdrop-filter:blur(10px)}
+.stat{text-align:center}
+.stat .number{font-size:22px;font-weight:800;background:linear-gradient(135deg,#5a67d8,#f093fb);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat .label{font-size:11px;color:rgba(255,255,255,.85);margin-top:2px}
+.features-section{width:100%;max-width:500px;margin-top:40px;content-visibility:auto;contain-intrinsic-size:auto 420px}
+.section-label{text-align:center;font-size:12px;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.75);margin-bottom:16px}
+.features-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.feature-item{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 12px;text-align:center;transition:all .3s;cursor:default}
+.feature-item:hover{background:rgba(255,255,255,.06);transform:translateY(-2px)}
+.feature-item .icon{margin-bottom:6px;display:block}
+.feature-item .name{font-size:13px;font-weight:600;color:rgba(255,255,255,.9)}
+.feature-item .desc{font-size:11px;color:rgba(255,255,255,.8);margin-top:2px}
+.landing-footer{position:relative;z-index:1;padding:20px 24px;text-align:center;font-size:13px;color:rgba(255,255,255,.65);border-top:1px solid rgba(255,255,255,.08)}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;opacity:0;transition:all .3s;z-index:2000;max-width:90%;text-align:center}
+.toast.show{opacity:1;top:30px}
+.toast.success{background:#2e7d32}
+.toast.error{background:#c62828}
+.logo-svg{width:18px;height:18px;fill:currentColor;display:block;flex-shrink:0}
+.icon-svg{width:24px;height:24px;fill:currentColor;display:inline-block;vertical-align:middle}
+@media(min-width:768px){.top-bar{max-width:1080px;margin:0 auto}.landing-footer{max-width:1080px;margin:0 auto;width:100%}}
+@media(prefers-reduced-motion:reduce){.orb,.badge{animation:none!important}.btn-primary::before{transition:none}}
+</style>
 </head>
 <body>
-    <a href="#mainContent" class="skip-link">Langsung ke konten utama</a>
-
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-    <main class="landing-page" id="landingPage">
-        <div class="bg-effects" aria-hidden="true">
-            <div class="orb orb-1"></div>
-            <div class="orb orb-2"></div>
-            <div class="orb orb-3"></div>
-            <div class="grid"></div>
-        </div>
-
-        <header class="top-bar" role="banner">
-            <a href="/" class="logo" aria-label="MisiPulsa — Beranda">
-                <span class="icon" aria-hidden="true"><svg class="logo-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></span>
-                <span>MisiPulsa</span>
-            </a>
-            <nav class="top-nav-links" aria-label="Navigasi utama">
-                <a href="/dashboard" id="navDashboardBtn" class="btn-login-top" style="display:none" aria-label="Buka Dashboard">
-                    <svg class="icon-svg" viewBox="0 0 576 512" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c.2 35.3-31.8 64.2-67.2 64.2H161.3c-35.5 0-67.3-28.8-67.5-64.2l.3-160.2H32c-17.7 0-32-14-32-32.1C0 232 15 218 32 218l85.3 0L128 16c0-8.8 7.2-16 16-16h256c8.8 0 16 7.2 16 16l10.7 202H544c17 0 31.7 14.1 31.8 32.1z"/></svg>
-                    Dashboard
-                </a>
-                <a href="/login" id="navLoginBtn" class="btn-login-top" aria-label="Masuk ke akun">
-                    <svg class="icon-svg" viewBox="0 0 512 512" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M352 96l64 0c17.7 0 32 14.3 32 32l0 256c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32zm-256 96l0-64c0-17.7 14.3-32 32-32l96 0c17.7 0 32 14.3 32 32l0 64c0 8.8-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16zm256 0c0-17.7 14.3-32 32-32l64 0c17.7 0 32 14.3 32 32l0 64c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32-14.3-32-32zM64 288l0-64c0-17.7 14.3-32 32-32l96 0c17.7 0 32 14.3 32 32l0 64c0 8.8-7.2 16-16 16L80 304c-8.8 0-16-7.2-16-16zm416 0c0-8.8-7.2-16-16-16l-96 0c-8.8 0-16 7.2-16 16l0 64c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-64zM32 448l0-160c0-8.8 7.2-16 16-16l96 0c8.8 0 16 7.2 16 16l0 160c0 17.7-14.3 32-32 32L48 480c-17.7 0-32-14.3-32-32zm432 0c0 17.7-14.3 32-32 32l-80 0c-17.7 0-32-14.3-32-32l0-160c0-8.8 7.2-16 16-16l96 0c8.8 0 16 7.2 16 16l0 160z"/></svg>
-                    Masuk
-                </a>
-            </nav>
-        </header>
-
-        <div class="landing-content" id="mainContent">
-            <div class="hero">
-                <div class="badge" aria-label="Promosi: bonus 100 poin untuk pendaftar baru">
-                    <svg class="icon-svg" viewBox="0 0 384 512" width="12" height="12" style="vertical-align:-2px" aria-hidden="true"><path fill="#5a67d8" d="M272 32c-26.5 0-48.4 21.5-48 47.9 67.9 3.1 116.8 51.2 145.1 84.2 7.4 8.6 20.2 8.6 27.6 0C428.8 103.2 477.8 55.1 545.7 52 549.3 26.5 527.4 5 500.9 5H272zm-32 0H48C21.5 32 0 53.5 0 80v32c0 17.7 14.3 32 32 32H54.4c18.6 55.3 58.5 98.6 108.8 111.1 6.3 75.5 14.7 125.4 14.7 125.4s-19.3 16.8-19.3 39.5c0 24.5 19.9 44.4 44.4 44.4h16c24.5 0 44.4-19.9 44.4-44.4 0 0-19.3-16.8-19.3-39.5s8.4-49.9 14.7-125.4C218.1 144.6 258 101.3 276.6 46H320c17.7 0 32-14.3 32-32V80c0-26.5-21.5-48-48-48z"/></svg>
-                    Bonus 100 Poin untuk Pendaftar Baru!
-                </div>
-                <h1>Dapatkan <span class="highlight">Pulsa Gratis</span><br>Cukup Nonton & Klik!</h1>
-                <p>Kumpulkan poin dengan misi seru: nonton YouTube, iklan, daily login, dan ajak teman. Tukarkan poinmu jadi <strong>pulsa</strong>!</p>
-                <div class="hero-buttons" role="group" aria-label="Aksi utama">
-                    <a href="/register" class="btn-primary" aria-label="Daftar sekarang dan mulai dapat pulsa gratis">
-                        <svg class="icon-svg" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M131.9 247.6c-9.4 9.4-24.6 9.4-33.9 0l-7.1-7.1C68.3 221.5 48 183.7 48 144C48 82.1 98.1 32 160 32s112 50.1 112 112c0 39.7-20.3 77.5-42.9 97.5l-7.1 7.1zm88.9-1.6L363 213.8c11.7-11.7 18.4-27.6 18.4-44.2c0-35.3-28.7-64-64-64s-64 28.7-64 64c0 8.1 1.5 15.9 4.3 23.2l28.4 28.4c-7.1 2.2-14.6 3.4-22.3 3.4c-35.3 0-64 28.7-64 64s28.7 64 64 64c35.3 0 64-28.7 64-64c0-7.7-1.2-15.2-3.4-22.3zM512 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v32H352c-17.7 0-32 14.3-32 32s14.3 32 32 32h96v32c0 17.7 14.3 32 32 32s32-14.3 32-32V384c17.7 0 32-14.3 32-32s-14.3-32-32-32zM256 384c0 17.7 14.3 32 32 32h48v48c0 17.7 14.3 32 32 32s32-14.3 32-32V448h48c17.7 0 32-14.3 32-32s-14.3-32-32-32H368v-48c0-17.7-14.3-32-32-32s-32 14.3-32 32v48h-48c-17.7 0-32 14.3-32 32z"/></svg>
-                        Mulai Sekarang
-                    </a>
-                    <a href="/login" class="btn-secondary" aria-label="Daftar dan dapatkan bonus 100 poin">
-                        <svg class="icon-svg" viewBox="0 0 512 512" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M205 14.4c13.8 5.6 21.4 20 18.1 34.2L168.3 360c-3.8 16.3-17.8 27.3-34.4 27.3S77.8 376.3 74 360L10.5 48.4C7.2 34.2 14.8 19.8 28.6 14.2S41.8 7.6 45.2 21.8L51 46.3C59.7 79.5 92.2 104 129.1 104h26.4c36.9 0 69.4-24.5 78.1-57.7L228 24.2c3.4-14.2 16.4-21.4 28-16.2zm48.5 46L254.6 19.4c-3.1-13-15.4-21.4-28.4-18.3s-21.4 15.4-18.3 28.4l4.1 16.5C196.4 94.6 152.1 128 101.1 128H80L146.9 32C160.6 5.6 190.3 0 212.3 14.2 234.3 28.4 243 60 233.8 89.2L221.1 130c66.4 15.5 113.5 75.7 113.5 148.7c0 15.1-1.3 29.9-3.8 44.3c-3 17.2-19.7 29.2-37 26.1s-29.2-19.7-26.1-37c.5-2.9.8-5.8.8-8.8c0-55.2-36.5-101.9-86.5-116.3l4 24c3.1 17.9-8.7 35.3-26.5 38.5s-35.3-8.7-38.5-26.5L182.1 63.6C179 45.8 190.8 28.3 208.5 25.2s35.3 8.7 38.5 26.5z"/></svg>
-                        Daftar & Dapatkan 100 Poin
-                    </a>
-                </div>
-                <div class="stats" role="list" aria-label="Statistik pengguna">
-                    <div class="stat" role="listitem"><div class="number">10K+</div><div class="label">Pengguna Aktif</div></div>
-                    <div class="stat" role="listitem"><div class="number">50K+</div><div class="label">Misi Selesai</div></div>
-                    <div class="stat" role="listitem"><div class="number">Rp 100M+</div><div class="label">Pulsa Dibagikan</div></div>
-                </div>
-            </div>
-
-            <section class="features-section" aria-labelledby="featuresHeading">
-                <div class="section-label" id="featuresHeading">— Cara Dapat Pulsa —</div>
-                <div class="features-grid">
-                    <div class="feature-item" role="listitem">
-                        <span class="icon" aria-hidden="true"><svg class="icon-svg" viewBox="0 0 512 512" width="28" height="28"><path fill="#ff1744" d="M0 125C0 91.9 26.9 65 60.6 60.6l88 44L256 0l107.4 104.6 88 44C485.1 153.1 512 180 512 213.8V384c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V125zM64 256v128c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V256L256 160 64 256z"/></svg></span>
-                        <div class="name">Nonton YouTube</div><div class="desc">+75 poin / video</div>
-                    </div>
-                    <div class="feature-item" role="listitem">
-                        <span class="icon" aria-hidden="true"><svg class="icon-svg" viewBox="0 0 512 512" width="28" height="28"><path fill="#0d47a1" d="M480 32c0-17.7-14.3-32-32-32L384 0 256 128 128 0 64 0 32 0C14.3 0 0 14.3 0 32V416c0 53 43 96 96 96l160 0 160 0c53 0 96-43 96-96V32zM256 416L96 416c-17.7 0-32-14.3-32-32V336L256 448l192 0V384c0 17.7-14.3 32-32 32H256zM416 288H96V64H416V288z"/></svg></span>
-                        <div class="name">Nonton Iklan</div><div class="desc">+50 poin / iklan</div>
-                    </div>
-                    <div class="feature-item" role="listitem">
-                        <span class="icon" aria-hidden="true"><svg class="icon-svg" viewBox="0 0 448 512" width="28" height="28"><path fill="#c2410c" d="M12 192C12 86 98 0 204 0H232C338 0 424 86 424 192l0 32c0 17.7-14.3 32-32 32l0 64c17.7 0 32 14.3 32 32l0 32c0 17.7-14.3 32-32 32l0 32c0 53-43 96-96 96H128c-53 0-96-43-96-96l0-32c-17.7 0-32-14.3-32-32l0-32c0-17.7 14.3-32 32-32l0-64c-17.7 0-32-14.3-32-32l0-32zM204 128c-11 0-20 9-20 20l0 16c0 11 9 20 20 20l80 0c11 0 20-9 20-20l0-16c0-11-9-20-20-20l-80 0zM32 384l384 0 0 64c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64l0-64z"/></svg></span>
-                        <div class="name">Daily Login</div><div class="desc">+10 poin / hari</div>
-                    </div>
-                    <div class="feature-item" role="listitem">
-                        <span class="icon" aria-hidden="true"><svg class="icon-svg" viewBox="0 0 640 512" width="28" height="28"><path fill="#2e7d32" d="M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304l91.4 0C268.2 304 320 355.8 320 417.7l0 64.6c0 17-14 31-31.2 31.1C115.4 513.7 0 402.5 0 482.3zM471 143c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/></svg></span>
-                        <div class="name">Ajak Teman</div><div class="desc">+50 poin / referral</div>
-                    </div>
-                    <div class="feature-item" role="listitem">
-                        <span class="icon" aria-hidden="true"><svg class="icon-svg" viewBox="0 0 576 512" width="28" height="28"><path fill="#1565c0" d="M512 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h464c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-48 272c0 8.8-7.2 16-16 16H96c-8.8 0-16-7.2-16-16V160c0-8.8 7.2-16 16-16h352c8.8 0 16 7.2 16 16v144z"/></svg></span>
-                        <div class="name">Tarik Pulsa</div><div class="desc">Min 10.000 poin</div>
-                    </div>
-                    <div class="feature-item" role="listitem">
-                        <span class="icon" aria-hidden="true"><svg class="icon-svg" viewBox="0 0 576 512" width="28" height="28"><path fill="#ffc107" d="M400 0H176c-26.5 0-48.1 21.8-47 48.1c.9 22.9 10.4 41.5 29.8 59.4L156.9 278.6c-25.4 24.3-66.3 24-90.6-.3l-55.9-57.4C11.3 208.5 0 182.9 0 155.2C0 113.8 33.8 80 75.2 80H112c20.5 0 39.2 8.5 52.2 22.1L192 128l24.6-24.6C232.8 89.3 254.1 80 276 80H400c44.2 0 80 35.8 80 80v48H400V160zM96 256c-35.3 0-64 28.7-64 64s28.7 64 64 64H480c35.3 0 64-28.7 64-64s-28.7-64-64-64H96z"/></svg></span>
-                        <div class="name">Upgrade Misi</div><div class="desc">20x lebih banyak</div>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <footer class="landing-footer" role="contentinfo">
-            © 2024 MisiPulsa — Dapatkan pulsa gratis dengan mudah!
-        </footer>
-    </main>
-
-    <script>
-        function syncTopNav() {
-            const dash = document.getElementById('navDashboardBtn');
-            const masuk = document.getElementById('navLoginBtn');
-            if (!dash || !masuk) return;
-            let loggedIn = false;
-            try {
-                const u = JSON.parse(localStorage.getItem('mp_currentUser') || 'null');
-                loggedIn = !!(u && u.id && u.name);
-            } catch (e) {}
-            dash.style.display = loggedIn ? '' : 'none';
-            masuk.style.display = loggedIn ? 'none' : '';
-        }
-        window.misipulsaSessionReady = syncTopNav;
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', syncTopNav);
-        } else {
-            syncTopNav();
-        }
-    </script>
+<a href="#mainContent" class="skip-link">Langsung ke konten utama</a>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<main class="landing-page" id="landingPage">
+<div class="bg-effects" aria-hidden="true">
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<div class="bg-grid"></div>
+</div>
+<header class="top-bar" role="banner">
+<a href="/" class="logo" aria-label="MisiPulsa — Beranda">
+<span class="icon" aria-hidden="true"><svg class="logo-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></span>
+<span>MisiPulsa</span>
+</a>
+<nav class="top-nav-links" aria-label="Navigasi utama">
+<a href="/dashboard" id="navDashboardBtn" class="btn-login-top" style="display:none" aria-label="Buka Dashboard"><svg class="icon-svg" viewBox="0 0 576 512" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c.2 35.3-31.8 64.2-67.2 64.2H161.3c-35.5 0-67.3-28.8-67.5-64.2l.3-160.2H32c-17.7 0-32-14-32-32.1C0 232 15 218 32 218l85.3 0L128 16c0-8.8 7.2-16 16-16h256c8.8 0 16 7.2 16 16l10.7 202H544c17 0 31.7 14.1 31.8 32.1z"/></svg> Dashboard</a>
+<a href="/login" id="navLoginBtn" class="btn-login-top" aria-label="Masuk ke akun"><svg class="icon-svg" viewBox="0 0 512 512" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M352 96l64 0c17.7 0 32 14.3 32 32l0 256c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32zm-256 96l0-64c0-17.7 14.3-32 32-32l96 0c17.7 0 32 14.3 32 32l0 64c0 8.8-7.2 16-16 16l-128 0c-8.8 0-16-7.2-16-16zm256 0c0-17.7 14.3-32 32-32l64 0c17.7 0 32 14.3 32 32l0 64c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32-14.3-32-32zM64 288l0-64c0-17.7 14.3-32 32-32l96 0c17.7 0 32 14.3 32 32l0 64c0 8.8-7.2 16-16 16L80 304c-8.8 0-16-7.2-16-16zm416 0c0-8.8-7.2-16-16-16l-96 0c-8.8 0-16 7.2-16 16l0 64c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-64zM32 448l0-160c0-8.8 7.2-16 16-16l96 0c8.8 0 16 7.2 16 16l0 160c0 17.7-14.3 32-32 32L48 480c-17.7 0-32-14.3-32-32zm432 0c0 17.7-14.3 32-32 32l-80 0c-17.7 0-32-14.3-32-32l0-160c0-8.8 7.2-16 16-16l96 0c8.8 0 16 7.2 16 16l0 160z"/></svg> Masuk</a>
+</nav>
+</header>
+<div class="landing-content" id="mainContent">
+<div class="hero">
+<div class="badge" aria-label="Promosi: bonus 100 poin untuk pendaftar baru"><svg class="icon-svg" viewBox="0 0 384 512" width="12" height="12" style="vertical-align:-2px" aria-hidden="true"><path fill="#5a67d8" d="M272 32c-26.5 0-48.4 21.5-48 47.9 67.9 3.1 116.8 51.2 145.1 84.2 7.4 8.6 20.2 8.6 27.6 0C428.8 103.2 477.8 55.1 545.7 52 549.3 26.5 527.4 5 500.9 5H272zm-32 0H48C21.5 32 0 53.5 0 80v32c0 17.7 14.3 32 32 32H54.4c18.6 55.3 58.5 98.6 108.8 111.1 6.3 75.5 14.7 125.4 14.7 125.4s-19.3 16.8-19.3 39.5c0 24.5 19.9 44.4 44.4 44.4h16c24.5 0 44.4-19.9 44.4-44.4 0 0-19.3-16.8-19.3-39.5s8.4-49.9 14.7-125.4C218.1 144.6 258 101.3 276.6 46H320c17.7 0 32-14.3 32-32V80c0-26.5-21.5-48-48-48z"/></svg> Bonus 100 Poin untuk Pendaftar Baru!</div>
+<h1>Dapatkan <span class="highlight">Pulsa Gratis</span><br>Cukup Nonton & Klik!</h1>
+<p>Kumpulkan poin dengan misi seru: nonton YouTube, iklan, daily login, dan ajak teman. Tukarkan poinmu jadi <strong>pulsa</strong>!</p>
+<div class="hero-buttons" role="group" aria-label="Aksi utama">
+<a href="/register" class="btn-primary" aria-label="Daftar sekarang dan mulai dapat pulsa gratis"><svg class="icon-svg" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M131.9 247.6c-9.4 9.4-24.6 9.4-33.9 0l-7.1-7.1C68.3 221.5 48 183.7 48 144C48 82.1 98.1 32 160 32s112 50.1 112 112c0 39.7-20.3 77.5-42.9 97.5l-7.1 7.1zm88.9-1.6L363 213.8c11.7-11.7 18.4-27.6 18.4-44.2c0-35.3-28.7-64-64-64s-64 28.7-64 64c0 8.1 1.5 15.9 4.3 23.2l28.4 28.4c-7.1 2.2-14.6 3.4-22.3 3.4c-35.3 0-64 28.7-64 64s28.7 64 64 64c35.3 0 64-28.7 64-64c0-7.7-1.2-15.2-3.4-22.3zM512 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v32H352c-17.7 0-32 14.3-32 32s14.3 32 32 32h96v32c0 17.7 14.3 32 32 32s32-14.3 32-32V384c17.7 0 32-14.3 32-32s-14.3-32-32-32zM256 384c0 17.7 14.3 32 32 32h48v48c0 17.7 14.3 32 32 32s32-14.3 32-32V448h48c17.7 0 32-14.3 32-32s-14.3-32-32-32H368v-48c0-17.7-14.3-32-32-32s-32 14.3-32 32v48h-48c-17.7 0-32 14.3-32 32z"/></svg> Mulai Sekarang</a>
+<a href="/login" class="btn-secondary" aria-label="Daftar dan dapatkan bonus 100 poin"><svg class="icon-svg" viewBox="0 0 512 512" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M205 14.4c13.8 5.6 21.4 20 18.1 34.2L168.3 360c-3.8 16.3-17.8 27.3-34.4 27.3S77.8 376.3 74 360L10.5 48.4C7.2 34.2 14.8 19.8 28.6 14.2S41.8 7.6 45.2 21.8L51 46.3C59.7 79.5 92.2 104 129.1 104h26.4c36.9 0 69.4-24.5 78.1-57.7L228 24.2c3.4-14.2 16.4-21.4 28-16.2zm48.5 46L254.6 19.4c-3.1-13-15.4-21.4-28.4-18.3s-21.4 15.4-18.3 28.4l4.1 16.5C196.4 94.6 152.1 128 101.1 128H80L146.9 32C160.6 5.6 190.3 0 212.3 14.2 234.3 28.4 243 60 233.8 89.2L221.1 130c66.4 15.5 113.5 75.7 113.5 148.7c0 15.1-1.3 29.9-3.8 44.3c-3 17.2-19.7 29.2-37 26.1s-29.2-19.7-26.1-37c.5-2.9.8-5.8.8-8.8c0-55.2-36.5-101.9-86.5-116.3l4 24c3.1 17.9-8.7 35.3-26.5 38.5s-35.3-8.7-38.5-26.5L182.1 63.6c-3-17.8 8.8-35.2 26.6-38.4s35.2 8.8 38.4 26.6z"/></svg> Daftar & Dapatkan 100 Poin</a>
+</div>
+<div class="stats" role="list" aria-label="Statistik pengguna">
+<div class="stat" role="listitem"><div class="number">10K+</div><div class="label">Pengguna Aktif</div></div>
+<div class="stat" role="listitem"><div class="number">50K+</div><div class="label">Misi Selesai</div></div>
+<div class="stat" role="listitem"><div class="number">Rp 100M+</div><div class="label">Pulsa Dibagikan</div></div>
+</div>
+</div>
+<section class="features-section" aria-labelledby="featuresHeading">
+<div class="section-label" id="featuresHeading">— Cara Dapat Pulsa —</div>
+<div class="features-grid">
+<div class="feature-item" role="listitem"><span class="icon" aria-hidden="true"><svg class="icon-svg" viewBox="0 0 512 512" width="28" height="28"><path fill="#ff1744" d="M0 125C0 91.9 26.9 65 60.6 60.6l88 44L256 0l107.4 104.6 88 44C485.1 153.1 512 180 512 213.8V384c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V125zM64 256v128c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V256L256 160 64 256z"/></svg></span><div class="name">Nonton YouTube</div><div class="desc">+75 poin / video</div></div>
+<div class="feature-item" role="listitem"><span class="icon" aria-hidden="true"><svg class="icon-svg" viewBox="0 0 512 512" width="28" height="28"><path fill="#0d47a1" d="M480 32c0-17.7-14.3-32-32-32L384 0 256 128 128 0 64 0 32 0C14.3 0 0 14.3 0 32V416c0 53 43 96 96 96l160 0 160 0c53 0 96-43 96-96V32zM256 416L96 416c-17.7 0-32-14.3-32-32V336L256 448l192 0V384c0 17.7-14.3 32-32 32H256zM416 288H96V64H416V288z"/></svg></span><div class="name">Nonton Iklan</div><div class="desc">+50 poin / iklan</div></div>
+<div class="feature-item" role="listitem"><span class="icon" aria-hidden="true"><svg class="icon-svg" viewBox="0 0 448 512" width="28" height="28"><path fill="#c2410c" d="M12 192C12 86 98 0 204 0H232C338 0 424 86 424 192l0 32c0 17.7-14.3 32-32 32l0 64c17.7 0 32 14.3 32 32l0 32c0 17.7-14.3 32-32 32l0 32c0 53-43 96-96 96H128c-53 0-96-43-96-96l0-32c-17.7 0-32-14.3-32-32l0-32c0-17.7 14.3-32 32-32l0-64c-17.7 0-32-14.3-32-32l0-32zM204 128c-11 0-20 9-20 20l0 16c0 11 9 20 20 20l80 0c11 0 20-9 20-20l0-16c0-11-9-20-20-20l-80 0zM32 384l384 0 0 64c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64l0-64z"/></svg></span><div class="name">Daily Login</div><div class="desc">+10 poin / hari</div></div>
+<div class="feature-item" role="listitem"><span class="icon" aria-hidden="true"><svg class="icon-svg" viewBox="0 0 640 512" width="28" height="28"><path fill="#2e7d32" d="M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304l91.4 0C268.2 304 320 355.8 320 417.7l0 64.6c0 17-14 31-31.2 31.1C115.4 513.7 0 402.5 0 482.3zM471 143c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/></svg></span><div class="name">Ajak Teman</div><div class="desc">+50 poin / referral</div></div>
+<div class="feature-item" role="listitem"><span class="icon" aria-hidden="true"><svg class="icon-svg" viewBox="0 0 576 512" width="28" height="28"><path fill="#1565c0" d="M512 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h464c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm-48 272c0 8.8-7.2 16-16 16H96c-8.8 0-16-7.2-16-16V160c0-8.8 7.2-16 16-16h352c8.8 0 16 7.2 16 16v144z"/></svg></span><div class="name">Tarik Pulsa</div><div class="desc">Min 10.000 poin</div></div>
+<div class="feature-item" role="listitem"><span class="icon" aria-hidden="true"><svg class="icon-svg" viewBox="0 0 576 512" width="28" height="28"><path fill="#ffc107" d="M400 0H176c-26.5 0-48.1 21.8-47 48.1c.9 22.9 10.4 41.5 29.8 59.4L156.9 278.6c-25.4 24.3-66.3 24-90.6-.3l-55.9-57.4C11.3 208.5 0 182.9 0 155.2C0 113.8 33.8 80 75.2 80H112c20.5 0 39.2 8.5 52.2 22.1L192 128l24.6-24.6C232.8 89.3 254.1 80 276 80H400c44.2 0 80 35.8 80 80v48H400V160zM96 256c-35.3 0-64 28.7-64 64s28.7 64 64 64H480c35.3 0 64-28.7 64-64s-28.7-64-64-64H96z"/></svg></span><div class="name">Upgrade Misi</div><div class="desc">20x lebih banyak</div></div>
+</div>
+</section>
+</div>
+<footer class="landing-footer" role="contentinfo">© 2024 MisiPulsa — Dapatkan pulsa gratis dengan mudah!</footer>
+</main>
+<script>
+var d=document.getElementById('navDashboardBtn'),m=document.getElementById('navLoginBtn');
+if(d&&m){var u;try{u=JSON.parse(localStorage.getItem('mp_currentUser')||'null')}catch(e){}var l=u&&u.id&&u.name;d.style.display=l?'':'none';m.style.display=l?'none':''}
+window.misipulsaSessionReady=function(){d&&m&&(d.style.display='none');m&&(m.style.display='')}
+</script>
 </body>
 </html>
