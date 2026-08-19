@@ -45,7 +45,7 @@ a:focus-visible,button:focus-visible,[role="button"]:focus-visible{outline:3px s
 .feature-item .icon{font-size:24px;margin-bottom:6px;display:block}
 .feature-item .name{font-size:13px;font-weight:600;color:rgba(255,255,255,.90)}
 .feature-item .desc{font-size:11px;color:rgba(255,255,255,.80);margin-top:2px}
-.landing-footer{position:relative;z-index:1;padding:20px 24px;text-align:center;font-size:13px;color:rgba(255,255,255,.50);border-top:1px solid rgba(255,255,255,.05)}
+.landing-footer{position:relative;z-index:1;padding:20px 24px;text-align:center;font-size:13px;color:rgba(255,255,255,.65);border-top:1px solid rgba(255,255,255,.08)}
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:white;padding:12px 24px;border-radius:12px;font-size:14px;opacity:0;transition:all .3s;z-index:2000;max-width:90%;text-align:center}
 .toast.show{opacity:1;top:30px}
 .toast.success{background:#2e7d32}
