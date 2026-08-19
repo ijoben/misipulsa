@@ -13,6 +13,34 @@ body {
     overflow-x: hidden;
 }
 
+/* Skip link untuk aksesibilitas */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 16px;
+    background: #5a67d8;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 0 0 8px 8px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    z-index: 10000;
+    transition: top 0.2s;
+}
+.skip-link:focus {
+    top: 0;
+    outline: 3px solid #f093fb;
+    outline-offset: 2px;
+}
+
+/* Focus visible untuk semua link & button */
+a:focus-visible, button:focus-visible, [role="button"]:focus-visible {
+    outline: 3px solid #5a67d8;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
 /* ============ LANDING PAGE ============ */
 .landing-page {
     min-height: 100vh;
@@ -39,6 +67,8 @@ body {
     filter: blur(80px);
     opacity: 0.3;
     animation: floatOrb 20s ease-in-out infinite;
+    will-change: transform;
+    contain: layout style;
 }
 
 .bg-effects .orb-1 {
@@ -72,8 +102,8 @@ body {
 
 @keyframes floatOrb {
     0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(30px, -30px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.9); }
+    33% { transform: translate(30px, -30px) scale(1.05); }
+    66% { transform: translate(-20px, 20px) scale(0.95); }
 }
 
 .bg-effects .grid {
@@ -150,8 +180,8 @@ body {
 
 .top-bar .btn-login-top {
     padding: 8px 20px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.20);
     border-radius: 25px;
     color: white;
     font-size: 14px;
@@ -215,7 +245,7 @@ body {
 
 .hero p {
     font-size: 16px;
-    color: rgba(255,255,255,0.6);
+    color: rgba(255,255,255,0.80);
     line-height: 1.7;
     max-width: 400px;
     margin: 0 auto 30px;
@@ -268,12 +298,12 @@ body {
 
 .btn-secondary {
     padding: 12px 32px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
     border-radius: 50px;
-    color: rgba(255,255,255,0.6);
+    color: rgba(255,255,255,0.85);
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
     width: 100%;
@@ -311,7 +341,7 @@ body {
 }
 .stats .stat .label {
     font-size: 11px;
-    color: rgba(255,255,255,0.8);
+    color: rgba(255,255,255,0.85);
     margin-top: 2px;
 }
 
@@ -340,8 +370,8 @@ body {
 }
 
 .feature-item {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 12px;
     padding: 14px 12px;
     text-align: center;
@@ -355,19 +385,17 @@ body {
 }
 
 .feature-item .icon { font-size: 24px; margin-bottom: 6px; display: block; }
-.feature-item .name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8); }
-.feature-item .desc { font-size: 10px; color: rgba(255,255,255,0.75); margin-top: 2px; }
+.feature-item .name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.90); }
+.feature-item .desc { font-size: 11px; color: rgba(255,255,255,0.80); margin-top: 2px; }
 
 .landing-footer {
     position: relative;
     z-index: 1;
     padding: 20px 24px;
     text-align: center;
-    font-size: 12px;
-    content-visibility: auto;
-    contain-intrinsic-size: auto 60px;
-    color: rgba(255,255,255,0.2);
-    border-top: 1px solid rgba(255,255,255,0.03);
+    font-size: 13px;
+    color: rgba(255,255,255,0.50);
+    border-top: 1px solid rgba(255,255,255,0.05);
 }
 
 .landing-footer a { color: rgba(255,255,255,0.75); text-decoration: none; }
@@ -486,13 +514,13 @@ body {
 }
 
 .modal-body .demo-otp-box code, .auth-body .demo-otp-box code {
-    color: #2e7d32;
+    color: #4caf50;
     font-size: 18px;
     font-weight: bold;
     letter-spacing: 4px;
 }
 .modal-body .demo-otp-box p, .auth-body .demo-otp-box p {
-    color: rgba(255,255,255,0.75);
+    color: rgba(255,255,255,0.80);
     font-size: 11px;
     margin-top: 2px;
 }
@@ -543,7 +571,7 @@ body {
 .modal-body .back-btn, .auth-body .back-btn {
     background: transparent;
     border: none;
-    color: rgba(255,255,255,0.75);
+    color: rgba(255,255,255,0.80);
     cursor: pointer;
     font-size: 13px;
     margin-bottom: 10px;
@@ -553,7 +581,7 @@ body {
 }
 .modal-body .back-btn:hover, .auth-body .back-btn:hover { color: white; }
 .modal-body .otp-hint, .auth-body .otp-hint {
-    color: rgba(255,255,255,0.75);
+    color: rgba(255,255,255,0.80);
     font-size: 13px;
     text-align: center;
     margin: 8px 0;
