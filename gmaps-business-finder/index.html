@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GMaps Business Finder - Cari Bisnis & Nomor HP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>GMaps Business Finder</span>
+            </div>
+            <p class="subtitle">Temukan informasi kontak bisnis dari Google Maps</p>
+        </header>
+
+        <!-- API Key Setup -->
+        <div id="apiKeySetup" class="card setup-card">
+            <h3><i class="fas fa-key"></i> Setup Google Maps API Key</h3>
+            <p>Masukkan API Key Anda untuk memulai pencarian.</p>
+            <div class="setup-steps">
+                <p>1. Buka <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a></p>
+                <p>2. Buat API Key dengan izin Places API</p>
+                <p>3. Masukkan API Key di bawah</p>
+            </div>
+            <div class="input-group">
+                <input type="text" id="apiKeyInput" placeholder="Masukkan Google Maps API Key">
+                <button onclick="saveApiKey()"><i class="fas fa-save"></i> Simpan</button>
+            </div>
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i>
+                Free tier: $200/bulan ≈ 4,000 pencarian gratis
+            </div>
+        </div>
+
+        <!-- Search Box -->
+        <div id="searchSection" class="card" style="display: none;">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Cari bisnis... (contoh: restoran di Jakarta)">
+                <button id="searchBtn" onclick="searchBusinesses()"><i class="fas fa-search"></i> Cari</button>
+            </div>
+            
+            <div class="filters">
+                <button class="filter-btn active" data-type="all" onclick="setTypeFilter('all', this)">Semua</button>
+                <button class="filter-btn" data-type="restaurant" onclick="setTypeFilter('restaurant', this)">🍽️ Restoran</button>
+                <button class="filter-btn" data-type="cafe" onclick="setTypeFilter('cafe', this)">☕ Cafe</button>
+                <button class="filter-btn" data-type="store" onclick="setTypeFilter('store', this)">🛒 Toko</button>
+                <button class="filter-btn" data-type="hospital" onclick="setTypeFilter('hospital', this)">🏥 Klinik</button>
+                <button class="filter-btn" data-type="pharmacy" onclick="setTypeFilter('pharmacy', this)">💊 Apotek</button>
+                <button class="filter-btn" data-type="bank" onclick="setTypeFilter('bank', this)">🏦 Bank</button>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Mencari bisnis...</p>
+        </div>
+
+        <!-- Error -->
+        <div id="error" class="error" style="display: none;"></div>
+
+        <!-- Results -->
+        <div id="results"></div>
+
+        <!-- Pagination -->
+        <div id="pagination" class="pagination" style="display: none;"></div>
+
+        <!-- Saved Contacts -->
+        <div id="savedContacts" class="card" style="display: none;">
+            <h3><i class="fas fa-bookmark"></i> Kontak Tersimpan</h3>
+            <div id="savedList"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
