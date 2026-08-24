@@ -3,25 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- SEO -->
-    <title>MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video & Iklan</title>
+    <title>MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video &amp; Iklan</title>
     <meta name="description" content="Kumpulkan poin gratis dengan nonton video YouTube dan iklan, daily login, serta ajak teman. Tukarkan poinmu jadi pulsa. Daftar sekarang, bonus 100 poin!">
     <meta name="keywords" content="pulsa gratis, misi pulsa, dapat pulsa, nonton video dapat pulsa, poin gratis, isi pulsa gratis">
     <meta name="robots" content="index, follow">
     <meta name="author" content="MisiPulsa">
     <meta name="theme-color" content="#5a67d8">
+    <meta name="color-scheme" content="dark">
     <link rel="canonical" href="/">
 
-    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/logo.svg">
     <link rel="apple-touch-icon" href="/logo.svg">
 
-    <!-- Open Graph (Facebook / WhatsApp / Telegram / LINE) -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="MisiPulsa">
     <meta property="og:locale" content="id_ID">
-    <meta property="og:title" content="MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video & Iklan">
+    <meta property="og:title" content="MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video &amp; Iklan">
     <meta property="og:description" content="Kumpulkan poin gratis: nonton YouTube, iklan, daily login, dan ajak teman. Tukarkan jadi pulsa. Bonus 100 poin untuk pendaftar baru!">
     <meta property="og:url" content="/">
     <meta property="og:image" content="/og-image.png">
@@ -29,13 +26,11 @@
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="MisiPulsa — Dapatkan Pulsa Gratis">
 
-    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video & Iklan">
+    <meta name="twitter:title" content="MisiPulsa — Dapatkan Pulsa Gratis dengan Nonton Video &amp; Iklan">
     <meta name="twitter:description" content="Kumpulkan poin gratis: nonton YouTube, iklan, daily login, dan ajak teman. Tukarkan jadi pulsa. Bonus 100 poin!">
     <meta name="twitter:image" content="/og-image.png">
 
-    <!-- Struktur data untuk mesin pencari -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -52,44 +47,19 @@
     }
     </script>
 
-    <!-- Percepatan: preconnect ke CDN & font -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 
-    <!-- Font Awesome dimuat async (tidak memblokir render) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'" integrity="sha384-iw3OoTErCYJJB9mCa8LNS2hbsQ7M3C0EpIsO/H5+EGAkPGc6rk+V8i04oW/K5xq0" crossorigin="anonymous">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" media="print" onload="this.media=&#39;all&#39;"><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"></noscript>
-    <link rel="stylesheet" href="style.css">
-
-    <!-- Ubah URL OG/canonical relatif menjadi absolut sesuai domain saat ini -->
-    <script>
-        (function () {
-            // Hanya properti berjenis URL yang diabsolutkan (bukan title/description)
-            var abs = function (sel, attr) {
-                var els = document.querySelectorAll(sel);
-                for (var i = 0; i < els.length; i++) {
-                    var v = els[i].getAttribute(attr);
-                    if (v && v.indexOf('http') !== 0) els[i].setAttribute(attr, window.location.origin + v);
-                }
-            };
-            abs('link[rel="canonical"]', 'href');
-            abs('meta[property="og:url"]', 'content');
-            abs('meta[property="og:image"]', 'content');
-            abs('meta[property="og:image:secure_url"]', 'content');
-            abs('meta[name="twitter:image"]', 'content');
-        })();
-    </script>
 </head>
 <body>
-    
     <div id="toast" class="toast"></div>
     
-    <!-- ============ LANDING PAGE ============ -->
     <main class="landing-page" id="landingPage">
         <div class="bg-effects">
             <div class="orb orb-1"></div>
@@ -98,7 +68,6 @@
             <div class="grid"></div>
         </div>
         
-        <!-- HEADER TOP BAR -->
         <div class="top-bar">
             <a href="/" class="logo">
                 <span class="icon"><svg class="logo-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></span>
@@ -117,11 +86,11 @@
         <div class="landing-content">
             <div class="hero">
                 <div class="badge"><i class="fas fa-bolt"></i> Bonus 100 Poin untuk Pendaftar Baru!</div>
-                <h1>Dapatkan <span class="highlight">Pulsa Gratis</span><br>Cukup Nonton & Klik!</h1>
+                <h1>Dapatkan <span class="highlight">Pulsa Gratis</span><br>Cukup Nonton &amp; Klik!</h1>
                 <p>Kumpulkan poin dengan misi seru: nonton YouTube, iklan, daily login, dan ajak teman. Tukarkan poinmu jadi <strong>pulsa</strong>!</p>
                 <div class="hero-buttons">
                     <a href="/register" class="btn-primary"><i class="fas fa-rocket"></i> Mulai Sekarang</a>
-                    <a href="/login" class="btn-secondary"><i class="fas fa-gift"></i> Daftar & Dapatkan 100 Poin</a>
+                    <a href="/login" class="btn-secondary"><i class="fas fa-gift"></i> Daftar &amp; Dapatkan 100 Poin</a>
                 </div>
                 <div class="stats">
                     <div class="stat"><div class="number">10K+</div><div class="label">Pengguna Aktif</div></div>
@@ -132,44 +101,57 @@
             
             <div class="features-section">
                 <div class="section-label">— Cara Dapat Pulsa —</div>
-                <div class="features-grid"><div class="feature-item"><span class="icon"><i class="fas fa-circle-play"></i></span><div class="name">Nonton YouTube</div><div class="desc">+75 poin / video</div></div>
-<div class="feature-item"><span class="icon"><i class="fas fa-bullhorn"></i></span><div class="name">Nonton Iklan</div><div class="desc">+50 poin / iklan</div></div>
-<div class="feature-item"><span class="icon"><i class="fas fa-calendar-day"></i></span><div class="name">Daily Login</div><div class="desc">+10 poin / hari</div></div>
-<div class="feature-item"><span class="icon"><i class="fas fa-users"></i></span><div class="name">Ajak Teman</div><div class="desc">+50 poin / referral</div></div>
-<div class="feature-item"><span class="icon"><i class="fas fa-credit-card"></i></span><div class="name">Tarik Pulsa</div><div class="desc">Min 10.000 poin</div></div>
-<div class="feature-item"><span class="icon"><i class="fas fa-crown" style="color:#ffc107;"></i></span><div class="name">Upgrade Misi</div><div class="desc">20x lebih banyak</div></div>
+                <div class="features-grid">
+                    <div class="feature-item"><span class="icon"><i class="fas fa-circle-play"></i></span><div class="name">Nonton YouTube</div><div class="desc">+75 poin / video</div></div>
+                    <div class="feature-item"><span class="icon"><i class="fas fa-bullhorn"></i></span><div class="name">Nonton Iklan</div><div class="desc">+50 poin / iklan</div></div>
+                    <div class="feature-item"><span class="icon"><i class="fas fa-calendar-day"></i></span><div class="name">Daily Login</div><div class="desc">+10 poin / hari</div></div>
+                    <div class="feature-item"><span class="icon"><i class="fas fa-users"></i></span><div class="name">Ajak Teman</div><div class="desc">+50 poin / referral</div></div>
+                    <div class="feature-item"><span class="icon"><i class="fas fa-credit-card"></i></span><div class="name">Tarik Pulsa</div><div class="desc">Min 10.000 poin</div></div>
+                    <div class="feature-item"><span class="icon"><i class="fas fa-crown" style="color:#ffc107;"></i></span><div class="name">Upgrade Misi</div><div class="desc">20x lebih banyak</div></div>
                 </div>
             </div>
         </div>
         
-        <!-- FOOTER -->
         <div class="landing-footer">
             © 2024 MisiPulsa — Dapatkan pulsa gratis dengan mudah!
         </div>
     </main>
 
-    <!-- Landing ringan: TANPA Supabase SDK / config / sistem.js (~150KB JS dihemat).
-         Cek status login cukup dari localStorage (mp_currentUser di-set saat login/logout). -->
     <link rel="prefetch" href="/dashboard">
     <script>
-        function syncTopNav() {
-            const dash = document.getElementById('navDashboardBtn');
-            const masuk = document.getElementById('navLoginBtn');
-            if (!dash || !masuk) return;
-            let loggedIn = false;
-            try {
-                const u = JSON.parse(localStorage.getItem('mp_currentUser') || 'null');
-                loggedIn = !!(u && u.id && u.name);
-            } catch (e) { /* abaikan */ }
-            dash.style.display = loggedIn ? '' : 'none';
-            masuk.style.display = loggedIn ? 'none' : '';
-        }
-        window.misipulsaSessionReady = syncTopNav;
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', syncTopNav);
-        } else {
-            syncTopNav();
-        }
+        (function () {
+            var abs = function (sel, attr) {
+                var els = document.querySelectorAll(sel);
+                for (var i = 0; i < els.length; i++) {
+                    var v = els[i].getAttribute(attr);
+                    if (v && v.indexOf('http') !== 0) els[i].setAttribute(attr, window.location.origin + v);
+                }
+            };
+            abs('link[rel="canonical"]', 'href');
+            abs('meta[property="og:url"]', 'content');
+            abs('meta[property="og:image"]', 'content');
+            abs('meta[property="og:image:secure_url"]', 'content');
+            abs('meta[name="twitter:image"]', 'content');
+
+            function syncTopNav() {
+                var dash = document.getElementById('navDashboardBtn');
+                var masuk = document.getElementById('navLoginBtn');
+                if (!dash || !masuk) return;
+                var loggedIn = false;
+                try {
+                    var u = JSON.parse(localStorage.getItem('mp_currentUser') || 'null');
+                    loggedIn = !!(u && u.id && u.name);
+                } catch (e) {}
+                dash.style.display = loggedIn ? '' : 'none';
+                masuk.style.display = loggedIn ? 'none' : '';
+            }
+            window.misipulsaSessionReady = syncTopNav;
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', syncTopNav);
+            } else {
+                syncTopNav();
+            }
+        })();
     </script>
 </body>
 </html>
