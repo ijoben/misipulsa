@@ -47,13 +47,8 @@
     }
     </script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"></noscript>
-
     <style>
-        * {
+        *, *::before, *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -62,7 +57,7 @@
             min-height: 100%;
             background: #0a0a1a;
             color: #ffffff;
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', system-ui, sans-serif;
             overflow-x: hidden;
         }
         .toast {
@@ -101,52 +96,10 @@
             z-index: 0;
             pointer-events: none;
             overflow: hidden;
-        }
-        .bg-effects .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(60px);
-            opacity: 0.25;
-            will-change: transform;
-            transform: translate3d(0, 0, 0);
-            animation: floatOrb 20s ease-in-out infinite;
-        }
-        .bg-effects .orb-1 {
-            width: 350px;
-            height: 350px;
-            background: #5a67d8;
-            top: -80px;
-            right: -80px;
-            animation-delay: 0s;
-        }
-        .bg-effects .orb-2 {
-            width: 280px;
-            height: 280px;
-            background: #764ba2;
-            bottom: -40px;
-            left: -40px;
-            animation-delay: -7s;
-        }
-        .bg-effects .orb-3 {
-            width: 180px;
-            height: 180px;
-            background: #f093fb;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            animation-delay: -14s;
-            opacity: 0.12;
-        }
-        @keyframes floatOrb {
-            0%, 100% {
-                transform: translate3d(0, 0, 0) scale(1);
-            }
-            33% {
-                transform: translate3d(20px, -20px, 0) scale(1.05);
-            }
-            66% {
-                transform: translate3d(-15px, 15px, 0) scale(0.95);
-            }
+            background:
+                radial-gradient(circle at 90% 10%, rgba(90, 103, 216, 0.28) 0%, transparent 45%),
+                radial-gradient(circle at 10% 90%, rgba(118, 75, 162, 0.25) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(240, 147, 251, 0.12) 0%, transparent 35%);
         }
         .bg-effects .grid {
             position: absolute;
@@ -226,7 +179,7 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: background 0.2s, transform 0.2s;
+            transition: background 0.2s;
         }
         .top-bar .btn-login-top svg {
             width: 14px;
@@ -462,9 +415,6 @@
     
     <main class="landing-page" id="landingPage">
         <div class="bg-effects">
-            <div class="orb orb-1"></div>
-            <div class="orb orb-2"></div>
-            <div class="orb orb-3"></div>
             <div class="grid"></div>
         </div>
         
