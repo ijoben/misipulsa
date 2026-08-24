@@ -405,7 +405,7 @@ body {
     font-size: 12px;
     content-visibility: auto;
     contain-intrinsic-size: auto 60px;
-    color: rgba(255, 255, 255, 0.2);
+    color: rgb(255 255 255 / 80%);
     border-top: 1px solid rgba(255, 255, 255, 0.03);
 }
 
